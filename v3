@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clara - Asistente de Seguros</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto max-w-4xl p-4">
+        <!-- Header -->
+        <div class="bg-blue-600 text-white p-6 rounded-lg mb-6">
+            <h1 class="text-3xl font-bold">Clara</h1>
+            <p class="text-blue-100">Tu consultora experta en seguros y fianzas</p>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div id="chat-messages" class="h-96 overflow-y-auto mb-4 border rounded p-4 bg-gray-50">
+                <div class="mb-4 p-3 bg-blue-100 rounded-lg">
+                    <strong>Clara:</strong> ¡Hola! Soy Clara, tu consultora de seguros. ¿En qué puedo ayudarte hoy?
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    id="user-input" 
+                    placeholder="Escribe tu pregunta sobre seguros..."
+                    class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onkeypress="if(event.key==='Enter') sendMessage()"
+                >
+                <button 
+                    onclick="sendMessage()"
+                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                    Enviar
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="mt-6 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Entrenar a Clara</h2>
+            <div class="flex gap-4">
+                <input 
+                    type="file" 
+                    id="file-input" 
+                    accept=".pdf,.txt"
+                    class="flex-1 p-3 border rounded-lg"
+                >
+                <button 
+                    onclick="uploadDocument()"
+                    class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                    Subir Documento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CHAT_API = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
+        const UPLOAD_API = 'https://mamutlabs.app.n8n.cloud/webhook-test/upload';
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const messages = document.getElementById('chat-messages');
+            const query = input.value.trim();
+            
+            if (!query) return;
+            
+            // Mostrar mensaje del usuario
+            messages.innerHTML += `
+                <div class="mb-4 p-3 bg-gray-100 rounded-lg ml-12">
+                    <strong>Tú:</strong> ${query}
+                </div>
+            `;
+            
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+            
+            // Mostrar typing indicator
+            messages.innerHTML += `
+                <div id="typing" class="
