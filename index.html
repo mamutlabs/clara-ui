@@ -332,7 +332,19 @@ async function uploadDocument(file) {
         addMessage('❌ Error al procesar el documento. Intenta de nuevo.', false);
     }
 }
+fetch('https://mamutlabs.app.n8n.cloud/webhook-test/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: "test",
+    user_id: "test_user"
+  })
+})
+.then(response => response.text())
+.then(data => console.log('Response:', data))
+.catch(error => console.log('Error:', error));
 
+        
     </script>
 </body>
 </html>
