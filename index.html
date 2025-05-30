@@ -103,21 +103,25 @@
             padding: 20px;
             border-top: 1px solid #30363d;
         }
-
-<!-- Agregar DESPUÉS de la línea del input-container -->
-        <div class="upload-container" style="padding: 20px; border-top: 1px solid #30363d;">
-            <div class="upload-wrapper" style="background: #21262d; border: 2px dashed #30363d; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s;">
-                <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
-                <div onclick="document.getElementById('file-input').click()" style="cursor: pointer;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
-                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                    </svg>
-                    <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
-                    <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC - Max 10MB</div>
-                </div>
-            </div>
-        </div>
-
+        
+        .upload-container {
+            padding: 20px;
+            border-top: 1px solid #30363d;
+        }
+        
+        .upload-wrapper {
+            background: #21262d;
+            border: 2px dashed #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+        
+        .upload-wrapper:hover {
+            border-color: #4285f4;
+        }
         
         .input-wrapper {
             position: relative;
@@ -186,7 +190,9 @@
                 </div>
             </div>
         </div>
-        
+# PARTE 3/4 - HTML Body Restante + JavaScript Inicial (CORREGIDO)
+
+```html
         <div class="input-container">
             <div class="input-wrapper">
                 <textarea 
@@ -202,11 +208,23 @@
                 </button>
             </div>
         </div>
+        
+        <div class="upload-container">
+            <div class="upload-wrapper" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
+                <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC - Max 10MB</div>
+            </div>
+        </div>
     </div>
     
     <script>
-     const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook-test/chat';
-      
+        const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook-test/chat';
+        const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook-test/upload';
+        
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
@@ -222,38 +240,45 @@
                 sendMessage();
             }
         });
+        
         async function sendMessage() {
             const input = document.getElementById('user-input');
-            const chatContainer = document.getElementById('chat-container');
             const message = input.value.trim();
             
             if (!message) return;
             
-            // Agregar mensaje del usuario
             addMessage(message, true);
             input.value = '';
             input.style.height = 'auto';
             
-            // Mostrar indicador de escritura
             const typingId = addTypingIndicator();
             
             try {
+                console.log('Sending request to:', API_URL);
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         query: message,
                         user_id: 'web_user_' + Date.now()
                     })
                 });
                 
-                const data = await response.json();
+                console.log('Response status:', response.status);
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
                 removeTypingIndicator(typingId);
-                addMessage(data.response || 'Lo siento, hubo un error. Intenta de nuevo.', false);
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    addMessage(data.response || data.text || data || 'Respuesta recibida pero en formato inesperado.', false);
+                           } catch (parseError) {
+                    addMessage(responseText || 'Error al procesar respuesta.', false);
+                }
                 
             } catch (error) {
+                console.log('Network error:', error);
                 removeTypingIndicator(typingId);
                 addMessage('Error de conexión. Por favor, intenta de nuevo.', false);
             }
@@ -294,57 +319,44 @@
             const element = document.getElementById(id);
             if (element) element.remove();
         }
-
-    // Agregar al final del JavaScript, antes del
         
-document.getElementById('file-input').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        uploadDocument(file);
-    }
-});
-
-async function uploadDocument(file) {
-    const chatContainer = document.getElementById('chat-container');
-    
-    addMessage(`📄 Subiendo documento: ${file.name}`, true);
-    const typingId = addTypingIndicator();
-    
-    try {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const response = await fetch('https://mamutlabs.app.n8n.cloud/webhook-test/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: e.target.result,
-                    filename: file.name,
-                    user_id: 'web_user_' + Date.now()
-                })
-            });
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadDocument(file);
+            }
+        });
+        
+        async function uploadDocument(file) {
+            addMessage(`📄 Subiendo documento: ${file.name}`, true);
+            const typingId = addTypingIndicator();
             
-            removeTypingIndicator(typingId);
-            addMessage(`✅ Documento "${file.name}" procesado correctamente. Ya puedes preguntarme sobre su contenido.`, false);
-        };
-        reader.readAsText(file);
-    } catch (error) {
-        removeTypingIndicator(typingId);
-        addMessage('❌ Error al procesar el documento. Intenta de nuevo.', false);
-    }
-}
-fetch('https://mamutlabs.app.n8n.cloud/webhook-test/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    query: "test",
-    user_id: "test_user"
-  })
-})
-.then(response => response.text())
-.then(data => console.log('Response:', data))
-.catch(error => console.log('Error:', error));
-
-        
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const response = await fetch(UPLOAD_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: e.target.result,
+                            filename: file.name,
+                            user_id: 'web_user_' + Date.now()
+                        })
+                    });
+                    
+                    removeTypingIndicator(typingId);
+                    if (response.ok) {
+                        addMessage(`✅ Documento "${file.name}" procesado correctamente. Ya puedes preguntarme sobre su contenido.`, false);
+                    } else {
+                        addMessage('❌ Error al procesar el documento. Intenta de nuevo.', false);
+                    }
+                };
+                reader.readAsText(file);
+            } catch (error) {
+                removeTypingIndicator(typingId);
+                addMessage('❌ Error al procesar el documento. Intenta de nuevo.', false);
+            }
+        }
     </script>
 </body>
 </html>
