@@ -265,18 +265,14 @@ const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
                 });
                 
                 console.log('Response status:', response.status);
-                const responseText = await response.text();
-                console.log('Raw response:', responseText);
-                
-                removeTypingIndicator(typingId);
-                
-                try {
-                    const data = JSON.parse(responseText);
-                    addMessage(data.response || data.text || data || 'Respuesta recibida pero en formato inesperado.', false);
-                           } catch (parseError) {
-                    addMessage(responseText || 'Error al procesar respuesta.', false);
-                }
-                
+const responseText = await response.text();
+console.log('Raw response:', responseText);
+
+removeTypingIndicator(typingId);
+
+// Como el webhook devuelve TEXT (no JSON), usar directamente responseText
+addMessage(responseText || 'Error al procesar respuesta.', false);
+
             } catch (error) {
                 console.log('Network error:', error);
                 removeTypingIndicator(typingId);
