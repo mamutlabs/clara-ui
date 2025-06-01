@@ -206,16 +206,19 @@
             </div>
         </div>
         
-        <div class="upload-container">
-            <div class="upload-wrapper" onclick="document.getElementById('file-input').click()">
-                <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
-                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                </svg>
-                <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
-                <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC - Max 10MB</div>
-            </div>
-        </div>
+       <div class="upload-container">
+    <div class="upload-wrapper" onclick="document.getElementById('file-input').click()" style="cursor:pointer;">
+        <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+        </svg>
+        <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
+        <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
+        <div id="selected-file" style="color:#8b949e; margin-top:8px;"></div>
+        <button id="upload-btn" style="margin-top:12px; display:none;">Cargar documento</button>
+        <div id="upload-status" style="margin-top:8px; color:#34a853;"></div>
+    </div>
+</div>
     </div>
     
     <script>
@@ -319,38 +322,48 @@ addMessage(responseText || 'Error al procesar respuesta.', false);
                 uploadDocument(file);
             }
         });
-        
-        async function uploadDocument(file) {
-            addMessage(`📄 Subiendo documento: ${file.name}`, true);
-            const typingId = addTypingIndicator();
-            
-            try {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    const response = await fetch(UPLOAD_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            text: e.target.result,
-                            filename: file.name,
-                            user_id: 'web_user_' + Date.now()
-                        })
-                    });
-                    
-                    removeTypingIndicator(typingId);
-                    if (response.ok) {
-                        addMessage(`✅ Documento "${file.name}" procesado correctamente. Ya puedes preguntarme sobre su contenido.`, false);
-                    } else {
-                        addMessage('❌ Error al procesar el documento. Intenta de nuevo.', false);
-                    }
-                };
-                reader.readAsText(file);
-            } catch (error) {
-                removeTypingIndicator(typingId);
-                addMessage('❌ Error al procesar el documento. Intenta de nuevo.', false);
-            }
-        }
-    </script>
-</body>
-</html>
+        let selectedFile = null;
 
+document.getElementById('file-input').addEventListener('change', function(e) {
+    selectedFile = e.target.files[0];
+    document.getElementById('selected-file').textContent = selectedFile ? `Archivo seleccionado: ${selectedFile.name}` : '';
+    document.getElementById('upload-btn').style.display = selectedFile ? 'block' : 'none';
+    document.getElementById('upload-status').textContent = '';
+});
+
+document.getElementById('upload-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (!selectedFile) return;
+    document.getElementById('upload-status').style.color = "#fbbc04";
+    document.getElementById('upload-status').textContent = 'Procesando...';
+    uploadDocument(selectedFile);
+});
+
+async function uploadDocument(file) {
+    const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('filename', file.name);
+    formData.append('user_id', 'web_user_' + Date.now());
+
+    try {
+        const response = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            body: formData
+        });
+        if (response.ok) {
+            document.getElementById('upload-status').style.color = "#34a853";
+            document.getElementById('upload-status').textContent = `✅ Documento "${file.name}" cargado exitosamente. Ya puedes preguntarme sobre su contenido.`;
+            document.getElementById('upload-btn').style.display = 'none';
+            document.getElementById('selected-file').textContent = '';
+            selectedFile = null;
+        } else {
+            document.getElementById('upload-status').style.color = "#ea4335";
+            document.getElementById('upload-status').textContent = '❌ Error al procesar el documento.';
+        }
+    } catch (error) {
+        document.getElementById('upload-status').style.color = "#ea4335";
+        document.getElementById('upload-status').textContent = '❌ Error de conexión.';
+    }
+}
+       
