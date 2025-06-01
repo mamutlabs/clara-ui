@@ -198,7 +198,7 @@
                     placeholder="Pregúntame sobre seguros, fianzas o sube documentos..."
                     rows="1"
                 ></textarea>
-                <button class="send-button" onclick="sendMessage()">
+                <button class="send-button" id="send-btn" type="button">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                     </svg>
@@ -206,55 +206,73 @@
             </div>
         </div>
         
-       <div class="upload-container">
-    <div class="upload-wrapper" onclick="document.getElementById('file-input').click()" style="cursor:pointer;">
-        <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
-            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-        </svg>
-        <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
-        <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
-        <div id="selected-file" style="color:#8b949e; margin-top:8px;"></div>
-        <button id="upload-btn" style="margin-top:12px; display:none;">Cargar documento</button>
-        <div id="upload-status" style="margin-top:8px; color:#34a853;"></div>
-    </div>
-</div>
+        <div class="upload-container">
+            <div class="upload-wrapper" id="upload-wrapper" style="cursor:pointer;">
+                <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
+                <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
+                <div id="selected-file" style="color:#8b949e; margin-top:8px;"></div>
+                <button id="upload-btn" style="margin-top:12px; display:none;" type="button">Cargar documento</button>
+                <div id="upload-status" style="margin-top:8px; color:#34a853;"></div>
+            </div>
+        </div>
     </div>
     
     <script>
-       const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
-const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
-        
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
-        
-        document.getElementById('user-input').addEventListener('input', function() {
-            autoResize(this);
+        // URLs de la API
+        const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
+        const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
+
+        // Referencias a elementos
+        const input = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer = document.getElementById('chat-container');
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        const selectedFileDiv = document.getElementById('selected-file');
+        const uploadStatus = document.getElementById('upload-status');
+        const uploadWrapper = document.getElementById('upload-wrapper');
+
+        // Estado
+        let selectedFile = null;
+        let sending = false;
+
+        // Auto-resize para textarea
+        input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
         });
-        
-        document.getElementById('user-input').addEventListener('keydown', function(e) {
+
+        // Enviar mensaje con Enter (sin Shift)
+        input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                sendBtn.click();
             }
         });
-        
+
+        // Botón enviar mensaje
+        sendBtn.addEventListener('click', async function() {
+            if (sending) return;
+            sending = true;
+            await sendMessage();
+            sending = false;
+        });
+
         async function sendMessage() {
-            const input = document.getElementById('user-input');
             const message = input.value.trim();
-            
             if (!message) return;
-            
+
             addMessage(message, true);
             input.value = '';
             input.style.height = 'auto';
-            
+
             const typingId = addTypingIndicator();
-            
+
             try {
-                console.log('Sending request to:', API_URL);
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -263,107 +281,101 @@ const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
                         user_id: 'web_user_' + Date.now()
                     })
                 });
-                
-                console.log('Response status:', response.status);
-const responseText = await response.text();
-console.log('Raw response:', responseText);
 
-removeTypingIndicator(typingId);
-
-// Como el webhook devuelve TEXT (no JSON), usar directamente responseText
-addMessage(responseText || 'Error al procesar respuesta.', false);
-
+                const responseText = await response.text();
+                removeTypingIndicator(typingId);
+                addMessage(responseText || 'Error al procesar respuesta.', false);
             } catch (error) {
-                console.log('Network error:', error);
                 removeTypingIndicator(typingId);
                 addMessage('Error de conexión. Por favor, intenta de nuevo.', false);
             }
         }
-        
+
         function addMessage(text, isUser) {
-            const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message' + (isUser ? ' user-message' : '');
-            
             messageDiv.innerHTML = `
                 <div class="avatar ${isUser ? 'user-avatar' : 'ai-avatar'}">${isUser ? 'U' : 'C'}</div>
-                <div class="message-content">${text}</div>
+                <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
             `;
-            
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        
+
         function addTypingIndicator() {
-            const chatContainer = document.getElementById('chat-container');
             const typingDiv = document.createElement('div');
             const id = 'typing-' + Date.now();
             typingDiv.id = id;
             typingDiv.className = 'message';
-            
             typingDiv.innerHTML = `
                 <div class="avatar ai-avatar">C</div>
                 <div class="message-content typing">Clara está escribiendo...</div>
             `;
-            
             chatContainer.appendChild(typingDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             return id;
         }
-        
+
         function removeTypingIndicator(id) {
             const element = document.getElementById(id);
             if (element) element.remove();
         }
-        
-        document.getElementById('file-input').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                uploadDocument(file);
+
+        // Click en el área de carga de archivos
+        uploadWrapper.addEventListener('click', function(e) {
+            if (e.target !== uploadBtn) fileInput.click();
+        });
+
+        // Selección de archivo
+        fileInput.addEventListener('change', function(e) {
+            selectedFile = e.target.files[0] || null;
+            if (selectedFile) {
+                selectedFileDiv.textContent = `Archivo seleccionado: ${selectedFile.name}`;
+                uploadBtn.style.display = 'block';
+            } else {
+                selectedFileDiv.textContent = '';
+                uploadBtn.style.display = 'none';
             }
+            uploadStatus.textContent = '';
         });
-        let selectedFile = null;
 
-document.getElementById('file-input').addEventListener('change', function(e) {
-    selectedFile = e.target.files[0];
-    document.getElementById('selected-file').textContent = selectedFile ? `Archivo seleccionado: ${selectedFile.name}` : '';
-    document.getElementById('upload-btn').style.display = selectedFile ? 'block' : 'none';
-    document.getElementById('upload-status').textContent = '';
-});
-
-document.getElementById('upload-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    if (!selectedFile) return;
-    document.getElementById('upload-status').style.color = "#fbbc04";
-    document.getElementById('upload-status').textContent = 'Procesando...';
-    uploadDocument(selectedFile);
-});
-
-async function uploadDocument(file) {
-    const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('filename', file.name);
-    formData.append('user_id', 'web_user_' + Date.now());
-
-    try {
-        const response = await fetch(UPLOAD_URL, {
-            method: 'POST',
-            body: formData
+        // Botón subir documento
+        uploadBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            if (!selectedFile) return;
+            uploadStatus.style.color = "#fbbc04";
+            uploadStatus.textContent = 'Procesando...';
+            await uploadDocument(selectedFile);
         });
-        if (response.ok) {
-            document.getElementById('upload-status').style.color = "#34a853";
-            document.getElementById('upload-status').textContent = `✅ Documento "${file.name}" cargado exitosamente. Ya puedes preguntarme sobre su contenido.`;
-            document.getElementById('upload-btn').style.display = 'none';
-            document.getElementById('selected-file').textContent = '';
-            selectedFile = null;
-        } else {
-            document.getElementById('upload-status').style.color = "#ea4335";
-            document.getElementById('upload-status').textContent = '❌ Error al procesar el documento.';
+
+        async function uploadDocument(file) {
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('filename', file.name);
+            formData.append('user_id', 'web_user_' + Date.now());
+
+            try {
+                const response = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    uploadStatus.style.color = "#34a853";
+                    uploadStatus.textContent = `✅ Documento "${file.name}" cargado exitosamente. Ya puedes preguntarme sobre su contenido.`;
+                    uploadBtn.style.display = 'none';
+                    selectedFileDiv.textContent = '';
+                    selectedFile = null;
+                    fileInput.value = '';
+                } else {
+                    uploadStatus.style.color = "#ea4335";
+                    uploadStatus.textContent = '❌ Error al procesar el documento.';
+                }
+            } catch (error) {
+                uploadStatus.style.color = "#ea4335";
+                uploadStatus.textContent = '❌ Error de conexión.';
+            }
         }
-    } catch (error) {
-        document.getElementById('upload-status').style.color = "#ea4335";
-        document.getElementById('upload-status').textContent = '❌ Error de conexión.';
-    }
-}
-       
+    </script>
+</body>
+</html>
