@@ -98,16 +98,38 @@
   <script>
     // DATOS REALES DE TU SUPABASE
     const supabaseUrl = 'https://icgztphuneurmivtsrgo.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NTI3MzMsImV4cCI6MjA2NDQyODczM30.eywtag9kvI5VdMR3DGwi271iYf8wRZ9iONliqWqEV18';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg2NTI4NDcsImV4cCI6MjAwNDIyODg0N30.-8I0cL8S7vM2XGkNa3ja_m6C9TEs1aR1KXwUI4P4SgA';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    window.addEventListener('DOMContentLoaded', function () {
+    // Autenticación
+    window.addEventListener('DOMContentLoaded', async function () {
       const loginForm = document.getElementById('login-form');
       const emailInput = document.getElementById('email');
       const loginBtn = document.getElementById('login-btn');
       const logoutBtn = document.getElementById('logout-btn');
       const contenidoPrivado = document.getElementById('contenido-privado');
       const msgDiv = document.getElementById('msg');
+
+      // 1. Procesa el magic link de Supabase si viene en la URL
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+        if (error) {
+          msgDiv.style.color = '#ea4335';
+          msgDiv.textContent = 'Error al iniciar sesión desde el enlace: ' + error.message;
+        }
+        // Limpia el hash de la URL
+        window.location.hash = '';
+      }
+
+      // 2. Estado inicial de sesión
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        toggleAuth(session);
+      });
+
+      // 3. Cambios de sesión en vivo
+      supabase.auth.onAuthStateChange((_event, session) => {
+        toggleAuth(session);
+      });
 
       // Login por correo
       loginForm.onsubmit = async function(e) {
@@ -135,16 +157,6 @@
         location.reload();
       };
 
-      // Estado inicial de sesión
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        toggleAuth(session);
-      });
-
-      // Cambio de sesión en vivo
-      supabase.auth.onAuthStateChange((_event, session) => {
-        toggleAuth(session);
-      });
-
       function toggleAuth(session) {
         if (session) {
           loginForm.style.display = 'none';
@@ -157,14 +169,162 @@
         }
       }
     });
-    // --- Fin autenticación ---
 
-    // --- Lógica de la app ---
+    // Lógica de la app (chat, subida de archivos)
     window.addEventListener('DOMContentLoaded', function () {
-      // ... (El resto de tu código permanece igual desde aquí en adelante)
-      // No modifiques nada debajo de aquí, todo sigue igual.
-      // ... (Tu lógica de chat y subida de archivos permanece igual)
-      // (No lo repito aquí para ahorrar espacio y claridad, pero puedes dejarlo EXACTAMENTE igual como lo tienes en tu repo)
+      const input = document.getElementById('user-input');
+      const sendBtn = document.getElementById('send-btn');
+      const chatContainer = document.getElementById('chat-container');
+      const fileInput = document.getElementById('file-input');
+      const uploadBtn = document.getElementById('upload-btn');
+      const selectedFileDiv = document.getElementById('selected-file');
+      const uploadStatus = document.getElementById('upload-status');
+      const uploadWrapper = document.getElementById('upload-wrapper');
+      const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
+      const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
+      let selectedFile = null;
+      let sending = false;
+
+      if (input) {
+        input.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = this.scrollHeight + 'px';
+        });
+
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
+          }
+        });
+      }
+
+      if (sendBtn) {
+        sendBtn.addEventListener('click', async function() {
+          if (sending) return;
+          sending = true;
+          await sendMessage();
+          sending = false;
+        });
+      }
+
+      async function sendMessage() {
+        const message = input.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        input.value = '';
+        input.style.height = 'auto';
+
+        const typingId = addTypingIndicator();
+
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: message,
+              user_id: 'web_user_' + Date.now()
+            })
+          });
+
+          const responseText = await response.text();
+          removeTypingIndicator(typingId);
+          addMessage(responseText || 'Error al procesar respuesta.', false);
+        } catch (error) {
+          removeTypingIndicator(typingId);
+          addMessage('Error de conexión. Por favor, intenta de nuevo.', false);
+        }
+      }
+
+      function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message' + (isUser ? ' user-message' : '');
+        messageDiv.innerHTML = `
+          <div class="avatar ${isUser ? 'user-avatar' : 'ai-avatar'}">${isUser ? 'U' : 'C'}</div>
+          <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      function addTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        const id = 'typing-' + Date.now();
+        typingDiv.id = id;
+        typingDiv.className = 'message';
+        typingDiv.innerHTML = `
+          <div class="avatar ai-avatar">C</div>
+          <div class="message-content typing">Clara está escribiendo...</div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return id;
+      }
+
+      function removeTypingIndicator(id) {
+        const element = document.getElementById(id);
+        if (element) element.remove();
+      }
+
+      if (uploadWrapper) {
+        uploadWrapper.addEventListener('click', function(e) {
+          if (e.target !== uploadBtn) fileInput.click();
+        });
+      }
+
+      if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+          selectedFile = e.target.files[0] || null;
+          if (selectedFile) {
+            selectedFileDiv.textContent = `Archivo seleccionado: ${selectedFile.name}`;
+            uploadBtn.style.display = 'block';
+          } else {
+            selectedFileDiv.textContent = '';
+            uploadBtn.style.display = 'none';
+          }
+          uploadStatus.textContent = '';
+        });
+      }
+
+      if (uploadBtn) {
+        uploadBtn.addEventListener('click', async function(e) {
+          e.stopPropagation();
+          if (!selectedFile) return;
+          uploadStatus.style.color = "#fbbc04";
+          uploadStatus.textContent = 'Procesando...';
+          await uploadDocument(selectedFile);
+        });
+      }
+
+      async function uploadDocument(file) {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        formData.append('user_id', 'web_user_' + Date.now());
+
+        try {
+          const response = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            body: formData
+          });
+          if (response.ok) {
+            uploadStatus.style.color = "#34a853";
+            uploadStatus.textContent = `✅ Documento "${file.name}" cargado exitosamente. Ya puedes preguntarme sobre su contenido.`;
+            uploadBtn.style.display = 'none';
+            selectedFileDiv.textContent = '';
+            selectedFile = null;
+            fileInput.value = '';
+          } else {
+            uploadStatus.style.color = "#ea4335";
+            uploadStatus.textContent = '❌ Error al procesar el documento.';
+          }
+        } catch (error) {
+          uploadStatus.style.color = "#ea4335";
+          uploadStatus.textContent = '❌ Error de conexión.';
+        }
+      }
     });
   </script>
 </body>
