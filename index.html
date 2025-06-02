@@ -39,20 +39,21 @@
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      // Inicializa Supabase
+      // ¡Usa tus datos reales aquí!
       const supabaseUrl = 'https://icgztphuneurmivtsrgo.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NTI3MzMsImV4cCI6MjA2NDQyODczM30.eywtag9kvI5VdMR3DGwi271iYf8wRZ9iONliqWqEV18';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg2NTI4NDcsImV4cCI6MjAwNDIyODg0N30.-8I0cL4wqD3GdL_Jl3n9pF1U4j6oHLPJ14wH4yHz2eY';
       const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-      // Lógica de autenticación
       document.addEventListener('DOMContentLoaded', () => {
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const contenidoPrivado = document.getElementById('contenido-privado');
-        if (!loginBtn || !logoutBtn || !contenidoPrivado) return;
 
         async function loginGoogle() {
-          const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + window.location.pathname }
+          });
           if (error) alert(error.message);
         }
 
@@ -61,8 +62,8 @@
           location.reload();
         }
 
-        loginBtn.onclick = loginGoogle;
-        logoutBtn.onclick = logout;
+        if (loginBtn) loginBtn.onclick = loginGoogle;
+        if (logoutBtn) logoutBtn.onclick = logout;
 
         function toggleAuth(session) {
           if (session) {
@@ -76,10 +77,12 @@
           }
         }
 
+        // Verifica sesión al cargar
         supabase.auth.getSession().then(({ data: { session } }) => {
           toggleAuth(session);
         });
 
+        // Cambia UI si cambia autenticación
         supabase.auth.onAuthStateChange((_event, session) => {
           toggleAuth(session);
         });
