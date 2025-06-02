@@ -226,13 +226,16 @@
         userInput.style.height = 'auto';
         const typingId = addTypingIndicator();
 
-        try {
+      // ... dentro de la función sendMessage ...
+
+      try {
           const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            // ESTA PARTE ES LA MÁS IMPORTANTE
             body: JSON.stringify({
-              query: message,
-              user_id: currentSession.user.id // Use the REAL user ID
+              query: message, // Aquí se incluye el mensaje del usuario
+              user_id: currentSession.user.id
             })
           });
 
@@ -246,6 +249,7 @@
         } finally {
           isSending = false;
         }
+      // ... resto de la función ...
       };
 
       /**
