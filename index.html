@@ -12,7 +12,7 @@
     }
     .container { display: flex; flex-direction: column; height: 100vh; max-width: 768px; margin: 0 auto; }
     .header { padding: 20px; text-align: center; border-bottom: 1px solid #30363d; }
-    .logo { font-size: 24px; font-weight: 500; background: linear-gradient(45deg, #4285f4, #34a853, #fbbc04, #ea4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .logo { font-size: 24px; font-weight: 500; background: linear-gradient(45deg, #4285f4, #34a853, #fbbc04, #ea4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     .subtitle { color: #8b949e; font-size: 14px; margin-top: 4px; }
     #auth-section { text-align:center; margin: 20px 0; }
     #login-btn, #logout-btn { padding: 8px 18px; border: 0; border-radius: 6px; background: #238636; color: white; font-weight: 500; margin: 0 6px; cursor: pointer; }
@@ -32,7 +32,7 @@
     .input-wrapper { position: relative; display: flex; align-items: end; background: #21262d; border: 1px solid #30363d; border-radius: 24px; overflow: hidden; transition: border-color 0.2s; }
     .input-wrapper:focus-within { border-color: #4285f4; }
     .chat-input { flex: 1; padding: 16px 20px; background: transparent; border: none; color: #e6edf3; font-size: 16px; resize: none; outline: none; max-height: 120px; font-family: inherit; }
-    .send-button { padding: 12px; background: #4285f4; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .send-button { padding: 12px; background: #4285f4; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;}
     .send-button:hover { background: #3367d6; }
     .typing { opacity: 0.7; font-style: italic; }
   </style>
@@ -96,13 +96,19 @@
   </div>
   
   <script>
-    // DATOS REALES DE TU SUPABASE
     const supabaseUrl = 'https://icgztphuneurmivtsrgo.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NTI3MzMsImV4cCI6MjA2NDQyODczM30.eywtag9kvI5VdMR3DGwi271iYf8wRZ9iONliqWqEV18';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Autenticación
-    window.addEventListener('DOMContentLoaded', async function () {
+    function onReady(callback) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', callback);
+      } else {
+        callback();
+      }
+    }
+
+    onReady(async function () {
       const loginForm = document.getElementById('login-form');
       const emailInput = document.getElementById('email');
       const loginBtn = document.getElementById('login-btn');
@@ -110,23 +116,41 @@
       const contenidoPrivado = document.getElementById('contenido-privado');
       const msgDiv = document.getElementById('msg');
 
-      // 1. Procesa el magic link de Supabase si viene en la URL
+      function toggleAuth(session) {
+        if (session) {
+          loginForm.style.display = 'none';
+          logoutBtn.style.display = '';
+          contenidoPrivado.style.display = '';
+          msgDiv.textContent = '';
+        } else {
+          loginForm.style.display = 'inline-block';
+          logoutBtn.style.display = 'none';
+          contenidoPrivado.style.display = 'none';
+          msgDiv.textContent = '';
+        }
+      }
+
+      // Procesa magic link de Supabase si viene en la URL
       if (window.location.hash && window.location.hash.includes('access_token')) {
         const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
         if (error) {
           msgDiv.style.color = '#ea4335';
           msgDiv.textContent = 'Error al iniciar sesión desde el enlace: ' + error.message;
         }
-        // Limpia el hash de la URL
         window.location.hash = '';
       }
 
-      // 2. Estado inicial de sesión
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      // Estado inicial de sesión
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         toggleAuth(session);
-      });
+      } catch (e) {
+        msgDiv.style.color = '#ea4335';
+        msgDiv.textContent = 'Error al obtener la sesión.';
+        toggleAuth(null);
+      }
 
-      // 3. Cambios de sesión en vivo
+      // Cambios de sesión en vivo
       supabase.auth.onAuthStateChange((_event, session) => {
         toggleAuth(session);
       });
@@ -154,24 +178,12 @@
 
       logoutBtn.onclick = async function() {
         await supabase.auth.signOut();
+        msgDiv.textContent = '';
         location.reload();
       };
-
-      function toggleAuth(session) {
-        if (session) {
-          loginForm.style.display = 'none';
-          logoutBtn.style.display = '';
-          contenidoPrivado.style.display = '';
-        } else {
-          loginForm.style.display = 'inline-block';
-          logoutBtn.style.display = 'none';
-          contenidoPrivado.style.display = 'none';
-        }
-      }
     });
 
-    // Lógica de la app (chat, subida de archivos)
-    window.addEventListener('DOMContentLoaded', function () {
+    onReady(function () {
       const input = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
       const chatContainer = document.getElementById('chat-container');
