@@ -1,300 +1,304 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clara - AI Insurance Assistant</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden;
-        }
-        .container { display: flex; flex-direction: column; height: 100vh; max-width: 768px; margin: 0 auto; }
-        .header { padding: 20px; text-align: center; border-bottom: 1px solid #30363d; }
-        .logo { font-size: 24px; font-weight: 500; background: linear-gradient(45deg, #4285f4, #34a853, #fbbc04, #ea4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .subtitle { color: #8b949e; font-size: 14px; margin-top: 4px; }
-        #auth-section { text-align:center; margin: 20px 0; }
-        #login-btn, #logout-btn { padding: 8px 18px; border: 0; border-radius: 6px; background: #238636; color: white; font-weight: 500; margin: 0 6px; cursor: pointer; }
-        #logout-btn { background: #ea4335; }
-        #contenido-privado { display: none; }
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-        .message { display: flex; gap: 12px; max-width: 100%; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
-        .user-avatar { background: #238636; color: white; }
-        .ai-avatar { background: linear-gradient(45deg, #4285f4, #34a853); color: white; }
-        .message-content { flex: 1; background: #161b22; padding: 16px; border-radius: 12px; border: 1px solid #30363d; line-height: 1.5; }
-        .user-message .message-content { background: #0969da; color: white; margin-left: auto; max-width: 80%; }
-        .input-container { padding: 20px; border-top: 1px solid #30363d; }
-        .upload-container { padding: 20px; border-top: 1px solid #30363d; }
-        .upload-wrapper { background: #21262d; border: 2px dashed #30363d; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s; cursor: pointer; }
-        .upload-wrapper:hover { border-color: #4285f4; }
-        .input-wrapper { position: relative; display: flex; align-items: end; background: #21262d; border: 1px solid #30363d; border-radius: 24px; overflow: hidden; transition: border-color 0.2s; }
-        .input-wrapper:focus-within { border-color: #4285f4; }
-        .chat-input { flex: 1; padding: 16px 20px; background: transparent; border: none; color: #e6edf3; font-size: 16px; resize: none; outline: none; max-height: 120px; font-family: inherit; }
-        .send-button { padding: 12px; background: #4285f4; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; margin: 4px; }
-        .send-button:hover { background: #3367d6; }
-        .typing { opacity: 0.7; font-style: italic; }
-    </style>
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      // ¡Usa tus datos reales aquí!
-      const supabaseUrl = 'https://icgztphuneurmivtsrgo.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg2NTI4NDcsImV4cCI6MjAwNDIyODg0N30.-8I0cL4wqD3GdL_Jl3n9pF1U4j6oHLPJ14wH4yHz2eY';
-      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-      document.addEventListener('DOMContentLoaded', () => {
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const contenidoPrivado = document.getElementById('contenido-privado');
-
-        async function loginGoogle() {
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.origin + window.location.pathname }
-          });
-          if (error) alert(error.message);
-        }
-
-        async function logout() {
-          await supabase.auth.signOut();
-          location.reload();
-        }
-
-        if (loginBtn) loginBtn.onclick = loginGoogle;
-        if (logoutBtn) logoutBtn.onclick = logout;
-
-        function toggleAuth(session) {
-          if (session) {
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = '';
-            contenidoPrivado.style.display = '';
-          } else {
-            loginBtn.style.display = '';
-            logoutBtn.style.display = 'none';
-            contenidoPrivado.style.display = 'none';
-          }
-        }
-
-        // Verifica sesión al cargar
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          toggleAuth(session);
-        });
-
-        // Cambia UI si cambia autenticación
-        supabase.auth.onAuthStateChange((_event, session) => {
-          toggleAuth(session);
-        });
-      });
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clara - AI Insurance Assistant</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden;
+    }
+    .container { display: flex; flex-direction: column; height: 100vh; max-width: 768px; margin: 0 auto; }
+    .header { padding: 20px; text-align: center; border-bottom: 1px solid #30363d; }
+    .logo { font-size: 24px; font-weight: 500; background: linear-gradient(45deg, #4285f4, #34a853, #fbbc04, #ea4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .subtitle { color: #8b949e; font-size: 14px; margin-top: 4px; }
+    #auth-section { text-align:center; margin: 20px 0; }
+    #login-btn, #logout-btn { padding: 8px 18px; border: 0; border-radius: 6px; background: #238636; color: white; font-weight: 500; margin: 0 6px; cursor: pointer; }
+    #logout-btn { background: #ea4335; }
+    #contenido-privado { display: none; }
+    .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+    .message { display: flex; gap: 12px; max-width: 100%; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
+    .user-avatar { background: #238636; color: white; }
+    .ai-avatar { background: linear-gradient(45deg, #4285f4, #34a853); color: white; }
+    .message-content { flex: 1; background: #161b22; padding: 16px; border-radius: 12px; border: 1px solid #30363d; line-height: 1.5; }
+    .user-message .message-content { background: #0969da; color: white; margin-left: auto; max-width: 80%; }
+    .input-container { padding: 20px; border-top: 1px solid #30363d; }
+    .upload-container { padding: 20px; border-top: 1px solid #30363d; }
+    .upload-wrapper { background: #21262d; border: 2px dashed #30363d; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s; cursor: pointer; }
+    .upload-wrapper:hover { border-color: #4285f4; }
+    .input-wrapper { position: relative; display: flex; align-items: end; background: #21262d; border: 1px solid #30363d; border-radius: 24px; overflow: hidden; transition: border-color 0.2s; }
+    .input-wrapper:focus-within { border-color: #4285f4; }
+    .chat-input { flex: 1; padding: 16px 20px; background: transparent; border: none; color: #e6edf3; font-size: 16px; resize: none; outline: none; max-height: 120px; font-family: inherit; }
+    .send-button { padding: 12px; background: #4285f4; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; margin: 4px; }
+    .send-button:hover { background: #3367d6; }
+    .typing { opacity: 0.7; font-style: italic; }
+  </style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">Clara</div>
-            <div class="subtitle">Tu consultora experta en seguros y fianzas</div>
-        </div>
-
-        <div id="auth-section">
-            <button id="login-btn">Login con Google</button>
-            <button id="logout-btn" style="display:none;">Logout</button>
-        </div>
-
-        <div id="contenido-privado">
-            <div class="chat-container" id="chat-container">
-                <div class="message">
-                    <div class="avatar ai-avatar">C</div>
-                    <div class="message-content">
-                        ¡Hola! Soy Clara, tu consultora de seguros especializada en fianzas, riesgos generales y riesgos personales. ¿En qué puedo ayudarte hoy?
-                    </div>
-                </div>
-            </div>
-            <div class="input-container">
-                <div class="input-wrapper">
-                    <textarea 
-                        class="chat-input" 
-                        id="user-input"
-                        placeholder="Pregúntame sobre seguros, fianzas o sube documentos..."
-                        rows="1"
-                    ></textarea>
-                    <button class="send-button" id="send-btn" type="button">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="upload-container">
-                <div class="upload-wrapper" id="upload-wrapper">
-                    <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
-                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                    </svg>
-                    <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
-                    <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
-                    <div id="selected-file" style="color:#8b949e; margin-top:8px;"></div>
-                    <button id="upload-btn" style="margin-top:12px; display:none;" type="button">Cargar documento</button>
-                    <div id="upload-status" style="margin-top:8px; color:#34a853;"></div>
-                </div>
-            </div>
-        </div> <!-- cierre de contenido-privado -->
+  <div class="container">
+    <div class="header">
+      <div class="logo">Clara</div>
+      <div class="subtitle">Tu consultora experta en seguros y fianzas</div>
     </div>
-    <script>
-        // URLs de la API
-        const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
-        const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
 
-        // Referencias a elementos
-        const input = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const chatContainer = document.getElementById('chat-container');
-        const fileInput = document.getElementById('file-input');
-        const uploadBtn = document.getElementById('upload-btn');
-        const selectedFileDiv = document.getElementById('selected-file');
-        const uploadStatus = document.getElementById('upload-status');
-        const uploadWrapper = document.getElementById('upload-wrapper');
+    <div id="auth-section">
+      <button id="login-btn">Login con Google</button>
+      <button id="logout-btn" style="display:none;">Logout</button>
+    </div>
 
-        // Estado
-        let selectedFile = null;
-        let sending = false;
+    <div id="contenido-privado">
+      <div class="chat-container" id="chat-container">
+        <div class="message">
+          <div class="avatar ai-avatar">C</div>
+          <div class="message-content">
+            ¡Hola! Soy Clara, tu consultora de seguros especializada en fianzas, riesgos generales y riesgos personales. ¿En qué puedo ayudarte hoy?
+          </div>
+        </div>
+      </div>
+      <div class="input-container">
+        <div class="input-wrapper">
+          <textarea 
+            class="chat-input" 
+            id="user-input"
+            placeholder="Pregúntame sobre seguros, fianzas o sube documentos..."
+            rows="1"
+          ></textarea>
+          <button class="send-button" id="send-btn" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="upload-container">
+        <div class="upload-wrapper" id="upload-wrapper">
+          <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+          </svg>
+          <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
+          <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
+          <div id="selected-file" style="color:#8b949e; margin-top:8px;"></div>
+          <button id="upload-btn" style="margin-top:12px; display:none;" type="button">Cargar documento</button>
+          <div id="upload-status" style="margin-top:8px; color:#34a853;"></div>
+        </div>
+      </div>
+    </div> <!-- cierre de contenido-privado -->
+  </div>
+  
+  <script>
+    // ¡Usa tus datos reales aquí!
+    const supabaseUrl = 'https://icgztphuneurmivtsrgo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljZ3p0cGh1bmV1cm1pdnRzcmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg2NTI4NDcsImV4cCI6MjAwNDIyODg0N30.-8I0cL4wqD3GdL_Jl3n9pF1U4j6oHLPJ14wH4yHz2eY';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Auto-resize para textarea
+    // --- Autenticación ---
+    window.addEventListener('DOMContentLoaded', function () {
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+      const contenidoPrivado = document.getElementById('contenido-privado');
+      // 1. Asegura que los botones existen y asigna handlers
+      if (loginBtn) loginBtn.onclick = loginGoogle;
+      if (logoutBtn) logoutBtn.onclick = logout;
+
+      // 2. Estado inicial
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        toggleAuth(session);
+      });
+
+      // 3. Cambios de sesión en vivo
+      supabase.auth.onAuthStateChange((_event, session) => {
+        toggleAuth(session);
+      });
+
+      // 4. Funciones
+      async function loginGoogle() {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) alert(error.message);
+      }
+      async function logout() {
+        await supabase.auth.signOut();
+        location.reload();
+      }
+      function toggleAuth(session) {
+        if (session) {
+          loginBtn.style.display = 'none';
+          logoutBtn.style.display = '';
+          contenidoPrivado.style.display = '';
+        } else {
+          loginBtn.style.display = '';
+          logoutBtn.style.display = 'none';
+          contenidoPrivado.style.display = 'none';
+        }
+      }
+    });
+    // --- Fin autenticación ---
+
+    // --- Lógica de la app ---
+    window.addEventListener('DOMContentLoaded', function () {
+      // Referencias a elementos
+      const input = document.getElementById('user-input');
+      const sendBtn = document.getElementById('send-btn');
+      const chatContainer = document.getElementById('chat-container');
+      const fileInput = document.getElementById('file-input');
+      const uploadBtn = document.getElementById('upload-btn');
+      const selectedFileDiv = document.getElementById('selected-file');
+      const uploadStatus = document.getElementById('upload-status');
+      const uploadWrapper = document.getElementById('upload-wrapper');
+      const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
+      const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
+      let selectedFile = null;
+      let sending = false;
+
+      if (input) {
         input.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
+          this.style.height = 'auto';
+          this.style.height = this.scrollHeight + 'px';
         });
 
-        // Enviar mensaje con Enter (sin Shift)
         input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendBtn.click();
-            }
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
+          }
         });
+      }
 
-        // Botón enviar mensaje
+      if (sendBtn) {
         sendBtn.addEventListener('click', async function() {
-            if (sending) return;
-            sending = true;
-            await sendMessage();
-            sending = false;
+          if (sending) return;
+          sending = true;
+          await sendMessage();
+          sending = false;
         });
+      }
 
-        async function sendMessage() {
-            const message = input.value.trim();
-            if (!message) return;
+      async function sendMessage() {
+        const message = input.value.trim();
+        if (!message) return;
 
-            addMessage(message, true);
-            input.value = '';
-            input.style.height = 'auto';
+        addMessage(message, true);
+        input.value = '';
+        input.style.height = 'auto';
 
-            const typingId = addTypingIndicator();
+        const typingId = addTypingIndicator();
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: message,
-                        user_id: 'web_user_' + Date.now()
-                    })
-                });
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: message,
+              user_id: 'web_user_' + Date.now()
+            })
+          });
 
-                const responseText = await response.text();
-                removeTypingIndicator(typingId);
-                addMessage(responseText || 'Error al procesar respuesta.', false);
-            } catch (error) {
-                removeTypingIndicator(typingId);
-                addMessage('Error de conexión. Por favor, intenta de nuevo.', false);
-            }
+          const responseText = await response.text();
+          removeTypingIndicator(typingId);
+          addMessage(responseText || 'Error al procesar respuesta.', false);
+        } catch (error) {
+          removeTypingIndicator(typingId);
+          addMessage('Error de conexión. Por favor, intenta de nuevo.', false);
         }
+      }
 
-        function addMessage(text, isUser) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message' + (isUser ? ' user-message' : '');
-            messageDiv.innerHTML = `
-                <div class="avatar ${isUser ? 'user-avatar' : 'ai-avatar'}">${isUser ? 'U' : 'C'}</div>
-                <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
-            `;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+      function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message' + (isUser ? ' user-message' : '');
+        messageDiv.innerHTML = `
+          <div class="avatar ${isUser ? 'user-avatar' : 'ai-avatar'}">${isUser ? 'U' : 'C'}</div>
+          <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
 
-        function addTypingIndicator() {
-            const typingDiv = document.createElement('div');
-            const id = 'typing-' + Date.now();
-            typingDiv.id = id;
-            typingDiv.className = 'message';
-            typingDiv.innerHTML = `
-                <div class="avatar ai-avatar">C</div>
-                <div class="message-content typing">Clara está escribiendo...</div>
-            `;
-            chatContainer.appendChild(typingDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return id;
-        }
+      function addTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        const id = 'typing-' + Date.now();
+        typingDiv.id = id;
+        typingDiv.className = 'message';
+        typingDiv.innerHTML = `
+          <div class="avatar ai-avatar">C</div>
+          <div class="message-content typing">Clara está escribiendo...</div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return id;
+      }
 
-        function removeTypingIndicator(id) {
-            const element = document.getElementById(id);
-            if (element) element.remove();
-        }
+      function removeTypingIndicator(id) {
+        const element = document.getElementById(id);
+        if (element) element.remove();
+      }
 
-        // Click en el área de carga de archivos
+      if (uploadWrapper) {
         uploadWrapper.addEventListener('click', function(e) {
-            if (e.target !== uploadBtn) fileInput.click();
+          if (e.target !== uploadBtn) fileInput.click();
         });
+      }
 
-        // Selección de archivo
+      if (fileInput) {
         fileInput.addEventListener('change', function(e) {
-            selectedFile = e.target.files[0] || null;
-            if (selectedFile) {
-                selectedFileDiv.textContent = `Archivo seleccionado: ${selectedFile.name}`;
-                uploadBtn.style.display = 'block';
-            } else {
-                selectedFileDiv.textContent = '';
-                uploadBtn.style.display = 'none';
-            }
-            uploadStatus.textContent = '';
+          selectedFile = e.target.files[0] || null;
+          if (selectedFile) {
+            selectedFileDiv.textContent = `Archivo seleccionado: ${selectedFile.name}`;
+            uploadBtn.style.display = 'block';
+          } else {
+            selectedFileDiv.textContent = '';
+            uploadBtn.style.display = 'none';
+          }
+          uploadStatus.textContent = '';
         });
+      }
 
-        // Botón subir documento
+      if (uploadBtn) {
         uploadBtn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            if (!selectedFile) return;
-            uploadStatus.style.color = "#fbbc04";
-            uploadStatus.textContent = 'Procesando...';
-            await uploadDocument(selectedFile);
+          e.stopPropagation();
+          if (!selectedFile) return;
+          uploadStatus.style.color = "#fbbc04";
+          uploadStatus.textContent = 'Procesando...';
+          await uploadDocument(selectedFile);
         });
+      }
 
-        async function uploadDocument(file) {
-            if (!file) return;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('filename', file.name);
-            formData.append('user_id', 'web_user_' + Date.now());
+      async function uploadDocument(file) {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        formData.append('user_id', 'web_user_' + Date.now());
 
-            try {
-                const response = await fetch(UPLOAD_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                if (response.ok) {
-                    uploadStatus.style.color = "#34a853";
-                    uploadStatus.textContent = `✅ Documento "${file.name}" cargado exitosamente. Ya puedes preguntarme sobre su contenido.`;
-                    uploadBtn.style.display = 'none';
-                    selectedFileDiv.textContent = '';
-                    selectedFile = null;
-                    fileInput.value = '';
-                } else {
-                    uploadStatus.style.color = "#ea4335";
-                    uploadStatus.textContent = '❌ Error al procesar el documento.';
-                }
-            } catch (error) {
-                uploadStatus.style.color = "#ea4335";
-                uploadStatus.textContent = '❌ Error de conexión.';
-            }
+        try {
+          const response = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            body: formData
+          });
+          if (response.ok) {
+            uploadStatus.style.color = "#34a853";
+            uploadStatus.textContent = `✅ Documento "${file.name}" cargado exitosamente. Ya puedes preguntarme sobre su contenido.`;
+            uploadBtn.style.display = 'none';
+            selectedFileDiv.textContent = '';
+            selectedFile = null;
+            fileInput.value = '';
+          } else {
+            uploadStatus.style.color = "#ea4335";
+            uploadStatus.textContent = '❌ Error al procesar el documento.';
+          }
+        } catch (error) {
+          uploadStatus.style.color = "#ea4335";
+          uploadStatus.textContent = '❌ Error de conexión.';
         }
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>
