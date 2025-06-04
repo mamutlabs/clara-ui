@@ -38,6 +38,8 @@
     .send-button:hover { background: #3367d6; }
     .typing { opacity: 0.7; font-style: italic; }
   </style>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -378,5 +380,12 @@ const sendMessage = async () => {
       }
     });
   </script>
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+  createChat({
+    webhookUrl: 'https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat'
+    // You can add further options here if needed
+  });
+</script>
 </body>
 </html>
