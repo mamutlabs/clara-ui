@@ -4,43 +4,147 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clara - AI Insurance Assistant</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden;
-    }
-    .container { display: flex; flex-direction: column; height: 100vh; max-width: 768px; margin: 0 auto; }
-    .header { padding: 20px; text-align: center; border-bottom: 1px solid #30363d; }
-    .logo { font-size: 24px; font-weight: 500; background: linear-gradient(45deg, #4285f4, #34a853, #fbbc04, #ea4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    .subtitle { color: #8b949e; font-size: 14px; margin-top: 4px; }
-    #auth-section { text-align:center; margin: 20px 0; padding: 0 20px; }
-    #login-btn, #logout-btn { padding: 8px 18px; border: 0; border-radius: 6px; background: #238636; color: white; font-weight: 500; margin: 0 6px; cursor: pointer; transition: background-color 0.2s; }
-    #login-btn:disabled { background: #555; cursor: not-allowed; }
-    #logout-btn { background: #d73a49; }
-    #contenido-privado { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-    .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-    .message { display: flex; gap: 12px; max-width: 100%; align-items: flex-end; }
-    .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
-    .user-avatar { background: #238636; color: white; }
-    .ai-avatar { background: linear-gradient(45deg, #4285f4, #34a853); color: white; }
-    .message-content { flex-shrink: 1; background: #161b22; padding: 16px; border-radius: 12px; border: 1px solid #30363d; line-height: 1.5; word-wrap: break-word; }
-    .user-message { justify-content: flex-end; }
-    .user-message .message-content { background: #0969da; color: white; }
-    .input-container { padding: 20px; border-top: 1px solid #30363d; }
-    .upload-container { padding: 0 20px 20px 20px; border-top: 1px solid #30363d; }
-    .upload-wrapper { background: #21262d; border: 2px dashed #30363d; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s; cursor: pointer; }
-    .upload-wrapper:hover { border-color: #4285f4; }
-    .input-wrapper { position: relative; display: flex; align-items: flex-end; background: #21262d; border: 1px solid #30363d; border-radius: 24px; overflow: hidden; transition: border-color 0.2s; }
-    .input-wrapper:focus-within { border-color: #4285f4; }
-    .chat-input { flex: 1; padding: 14px 20px; background: transparent; border: none; color: #e6edf3; font-size: 16px; resize: none; outline: none; max-height: 120px; font-family: inherit; }
-    .send-button { margin: 6px; padding: 10px; background: #4285f4; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
-    .send-button:hover { background: #3367d6; }
-    .typing { opacity: 0.7; font-style: italic; }
-  </style>
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
-  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #43e97b;
+      --glass-bg: rgba(25, 30, 40, 0.73);
+      --glass-border: rgba(80, 200, 255, 0.25);
+      --shadow: 0 6px 30px 0 rgba(0,0,0,0.25);
+      --font-main: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+    body {
+      font-family: var(--font-main);
+      background: linear-gradient(120deg, #0d1117 0%, #232b36 100%);
+      color: #e6edf3;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    .container {
+      display: flex; flex-direction: column; height: 100vh;
+      max-width: 768px; margin: 0 auto;
+      backdrop-filter: blur(0px);
+    }
+    .header {
+      padding: 24px 0 18px 0;
+      text-align: center;
+      border-bottom: 1.5px solid #2b3544;
+      background: transparent;
+    }
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), #ea4335);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      color: #8b949e;
+      font-size: 1.03rem;
+      margin-top: 8px;
+      letter-spacing: 0.4px;
+    }
+    #auth-section {
+      text-align:center; margin: 28px 0 16px 0; padding: 0 20px;
+    }
+    #login-btn, #logout-btn {
+      padding: 10px 22px; border: 0; border-radius: 8px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: #20252b; font-weight: 600; margin: 0 6px; cursor: pointer;
+      font-size: 1.01rem; transition: background 0.18s;
+      box-shadow: 0 2px 12px 0 var(--primary);
+    }
+    #login-btn:disabled { background: #555; cursor: not-allowed; }
+    #logout-btn { background: linear-gradient(90deg, #ea4335, #d73a49); color: #fff; box-shadow: 0 2px 12px 0 #ea433588;}
+    #contenido-privado { display: none; flex: 1; flex-direction: column; overflow: hidden;}
+    .glass {
+      background: var(--glass-bg);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      padding: 22px 22px 18px 22px;
+      margin: 18px 0;
+    }
+    .train-container h3 {
+      font-size: 1.18rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 9px;
+      margin-top: 0;
+    }
+    #train-text {
+      width: 100%; min-height: 70px;
+      background: rgba(30, 40, 60, 0.74);
+      color: #fff; border-radius: 12px; border: none;
+      padding: 12px; font-size: 1.05rem;
+      margin-bottom: 10px; resize: vertical; outline: none;
+      transition: box-shadow 0.15s;
+      box-shadow: 0 1px 6px 0 #00f2fe22;
+    }
+    #train-btn {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #232b36; font-weight: 600; border: none;
+      border-radius: 10px; padding: 11px 36px;
+      font-size: 1rem; cursor: pointer; transition: 0.2s;
+      box-shadow: 0 2px 12px 0 #00f2fe88;
+      margin-bottom: 8px;
+    }
+    #train-btn:hover {
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+    }
+    #train-status {
+      color: #7df9ff;
+      margin-top: 10px; font-size: 0.96em;
+      min-height: 1.3em;
+      text-align: left;
+    }
+    .upload-container {
+      margin-bottom: 0px;
+      padding: 0 0 22px 0;
+      border: none;
+    }
+    .upload-wrapper {
+      background: rgba(32, 39, 55, 0.82);
+      border: 2px dashed #30363d;
+      border-radius: 14px;
+      padding: 22px 24px 16px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 0;
+    }
+    .upload-wrapper:hover { border-color: var(--primary);}
+    #selected-file { color:#7df9ff; margin-top:8px; font-size: 0.98em;}
+    #upload-btn { background: linear-gradient(90deg, var(--primary), var(--accent)); color:#222; font-weight: 600; border:none; border-radius: 8px; padding: 8px 34px; font-size:1rem; margin-top: 12px; margin-bottom: 0;}
+    #upload-status { color: #72ffb4; margin-top:8px; font-size: 0.97em; min-height: 1.3em;}
+    #n8n-chat {
+      margin: 0 0 0 0;
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(21, 24, 32, 0.7);
+      box-shadow: 0 4px 24px 0 #00f2fe11;
+      min-height: 500px;
+    }
+    @media (max-width: 700px) {
+      .container { max-width: 99vw;}
+      .glass, .upload-wrapper { padding: 15px 8px;}
+    }
+    input[type="email"] {
+      padding: 9px; border-radius:7px; border:1.3px solid #30363d; color:#222; min-width: 220px;
+      font-size: 1.02em;
+      margin-right: 6px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -48,66 +152,66 @@
       <div class="logo">Clara</div>
       <div class="subtitle">Tu consultora experta en seguros y fianzas</div>
     </div>
-
     <div id="auth-section">
       <form id="login-form" style="display:none;">
-        <input type="email" id="email" placeholder="Tu correo electrónico" required style="padding:8px; border-radius:4px; border:1px solid #30363d; color:#222; min-width: 220px;">
+        <input type="email" id="email" placeholder="Tu correo electrónico" required>
         <button id="login-btn" type="submit">Ingresar por correo</button>
       </form>
       <button id="logout-btn" style="display:none;">Cerrar Sesión</button>
       <div id="msg" style="margin-top:10px; color:#34a853;"></div>
     </div>
-
     <div id="contenido-privado">
-      <div class="upload-container">
+      <!-- Entrenamiento por texto -->
+      <div class="train-container glass">
+        <h3>Entrena a Clara con instrucciones</h3>
+        <textarea id="train-text" placeholder="Escribe instrucciones, reglas o información relevante para entrenar a Clara..." rows="4"></textarea>
+        <br>
+        <button id="train-btn">Entrenar</button>
+        <div id="train-status"></div>
+      </div>
+      <!-- Upload de documentos -->
+      <div class="upload-container glass">
         <div class="upload-wrapper" id="upload-wrapper">
           <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="#4285f4" style="margin-bottom: 10px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="#00f2fe" style="margin-bottom: 10px;">
             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
           </svg>
           <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
           <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
-          <div id="selected-file" style="color:#8b949e; margin-top:8px;"></div>
-          <button id="upload-btn" class="login-btn" style="margin-top:12px; display:none;" type="button">Cargar y procesar</button>
-          <div id="upload-status" style="margin-top:8px; color:#34a853;"></div>
+          <div id="selected-file"></div>
+          <button id="upload-btn" style="margin-top:12px; display:none;" type="button">Cargar y procesar</button>
+          <div id="upload-status"></div>
         </div>
       </div>
-      <div class="chat-container" id="chat-container">
-        <div class="message">
-          <div class="avatar ai-avatar">C</div>
-          <div class="message-content">
-            ¡Hola! Soy Clara. Para comenzar, por favor inicia sesión. Una vez dentro, podrás hacerme preguntas o subir documentos para que los analice.
-          </div>
-        </div>
-      </div>
-      <div class="input-container">
-        <div class="input-wrapper">
-          <textarea
-            class="chat-input"
-            id="user-input"
-            placeholder="Inicia sesión para comenzar a chatear..."
-            rows="1"
-            disabled
-          ></textarea>
-          <button class="send-button" id="send-btn" type="button" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div> </div>
-
+      <!-- Chat embed n8n -->
+      <div id="n8n-chat"></div>
+    </div>
+  </div>
   <script>
+    let n8nChatInstance = null;
+    let n8nChatScript = null;
+    function showN8nChat() {
+      if (window.createChat && !n8nChatInstance) {
+        n8nChatInstance = window.createChat({
+          webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
+          element: "#n8n-chat"
+        });
+      }
+    }
+    function removeN8nChat() {
+      const chatDiv = document.getElementById("n8n-chat");
+      if (chatDiv) chatDiv.innerHTML = "";
+      n8nChatInstance = null;
+    }
     document.addEventListener('DOMContentLoaded', () => {
       // --- SUPABASE SETUP ---
       const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4X9pAURriYdKjlzWX38CLxjM5TtxxNCJSximcM3NI';
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // --- N8N WEBHOOK URLs ---
-      const API_URL = 'https://mamutlabs.app.n8n.cloud/webhook/chat';
+      // --- N8N WEBHOOK URLS ---
       const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
+      const TRAIN_URL = 'https://mamutlabs.app.n8n.cloud/webhook/train-text'; // <-- AJUSTA ESTE ENDPOINT EN N8N
 
       // --- DOM ELEMENTS ---
       const loginForm = document.getElementById('login-form');
@@ -117,65 +221,61 @@
       const contenidoPrivado = document.getElementById('contenido-privado');
       const authSection = document.getElementById('auth-section');
       const msgDiv = document.getElementById('msg');
-      const userInput = document.getElementById('user-input');
-      const sendBtn = document.getElementById('send-btn');
-      const chatContainer = document.getElementById('chat-container');
       const fileInput = document.getElementById('file-input');
       const uploadBtn = document.getElementById('upload-btn');
       const selectedFileDiv = document.getElementById('selected-file');
       const uploadStatus = document.getElementById('upload-status');
       const uploadWrapper = document.getElementById('upload-wrapper');
+      const trainBtn = document.getElementById('train-btn');
+      const trainText = document.getElementById('train-text');
+      const trainStatus = document.getElementById('train-status');
 
       // --- APP STATE ---
       let currentSession = null;
       let selectedFile = null;
-      let isSending = false;
 
       // --- AUTHENTICATION ---
-
-      /**
-       * Updates the UI based on the user's authentication state.
-       * @param {object|null} session - The Supabase session object, or null if logged out.
-       */
       const toggleAuthUI = (session) => {
-        currentSession = session; // Store session globally
+        currentSession = session;
         if (session) {
-          // User is logged in
           authSection.style.display = 'block';
           loginForm.style.display = 'none';
           logoutBtn.style.display = 'inline-block';
-          contenidoPrivado.style.display = 'flex'; // Use flex to enable child flex properties
+          contenidoPrivado.style.display = 'flex';
           msgDiv.textContent = '';
-          userInput.disabled = false;
-          sendBtn.disabled = false;
-          userInput.placeholder = 'Pregúntame sobre seguros, fianzas o sube documentos...';
-          // Clear initial message and welcome the user
-          const initialMessage = chatContainer.querySelector('.message');
-          if (initialMessage && initialMessage.innerText.includes('Para comenzar, por favor inicia sesión')) {
-            initialMessage.querySelector('.message-content').innerHTML = `¡Hola de nuevo! Soy Clara. ¿En qué puedo ayudarte hoy?`;
+          // Iniciar chat de n8n si no está ya cargado
+          if (!window.createChat) {
+            // Cargar el script de n8n sólo una vez
+            if (!n8nChatScript) {
+              n8nChatScript = document.createElement('script');
+              n8nChatScript.type = 'module';
+              n8nChatScript.innerHTML = `
+                import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+                window.createChat = createChat;
+                window.dispatchEvent(new Event('n8nChatReady'));
+              `;
+              document.body.appendChild(n8nChatScript);
+            }
+            window.addEventListener('n8nChatReady', showN8nChat, { once: true });
+          } else {
+            showN8nChat();
           }
         } else {
-          // User is logged out
           authSection.style.display = 'block';
           loginForm.style.display = 'inline-block';
           logoutBtn.style.display = 'none';
           contenidoPrivado.style.display = 'none';
           msgDiv.textContent = '';
-          userInput.disabled = true;
-          sendBtn.disabled = true;
-          userInput.placeholder = 'Inicia sesión para comenzar a chatear...';
+          removeN8nChat();
         }
       };
 
       // Listen for authentication state changes (login, logout)
-      supabase.auth.onAuthStateChange((_event, session) => {
-        toggleAuthUI(session);
-      });
+      supabase.auth.onAuthStateChange((_event, session) => toggleAuthUI(session));
 
       // Check for an existing session when the page loads
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        toggleAuthUI(session);
-      }).catch(error => {
+      supabase.auth.getSession().then(({ data: { session } }) => toggleAuthUI(session))
+      .catch(error => {
         console.error("Error getting session:", error);
         toggleAuthUI(null);
       });
@@ -191,7 +291,7 @@
         const { error } = await supabase.auth.signInWithOtp({
           email: email,
           options: {
-            emailRedirectTo: window.location.origin // Redirect to the base URL
+            emailRedirectTo: window.location.origin
           }
         });
 
@@ -208,122 +308,50 @@
       // Handle logout
       logoutBtn.addEventListener('click', async () => {
         await supabase.auth.signOut();
-        // onAuthStateChange will handle the UI update
       });
 
-      // --- CHAT & FILE UPLOAD LOGIC ---
-
-      /**
-       * Sends a message to the backend API.
-       */
-     
-
-const sendMessage = async () => {
-  if (isSending || !currentSession) return;
-
-  const message = userInput.value.trim();
-  if (!message) return;
-
-  isSending = true;
-  addMessageToUI(message, true);
-  userInput.value = '';
-  userInput.style.height = 'auto';
-  const typingId = addTypingIndicator();
-
-  try {
-    const response = await fetch(API_URL, { // <-- aquí el cambio
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: message,
-        userId: currentSession.user.id,
-        timestamp: new Date().toISOString()
-      })
-    });
-
-    const responseText = await response.text();
-    removeTypingIndicator(typingId);
-    addMessageToUI(responseText || 'No he podido procesar tu solicitud.', false);
-  } catch (error) {
-    console.error("Chat error:", error);
-    removeTypingIndicator(typingId);
-    addMessageToUI('Hubo un error de conexión. Por favor, intenta de nuevo.', false);
-  } finally {
-    isSending = false;
-  }
-};
-
-      /**
-       * Uploads a document to the backend.
-       * @param {File} file - The file to upload.
-       */
+      // --- FILE UPLOAD LOGIC ---
       const uploadDocument = async (file) => {
-          if (!file || !currentSession) return;
-
-          uploadStatus.style.color = "#fbbc04";
-          uploadStatus.textContent = 'Procesando y entrenando a Clara...';
-          uploadBtn.disabled = true;
-
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('filename', file.name);
-          formData.append('user_id', currentSession.user.id); // Use the REAL user ID
-
-          try {
-              const response = await fetch(UPLOAD_URL, {
-                  method: 'POST',
-                  body: formData
-              });
-              if (response.ok) {
-                  uploadStatus.style.color = "#34a853";
-                  uploadStatus.textContent = `✅ Documento "${file.name}" cargado. Ya puedes preguntarme sobre su contenido.`;
-                  // Reset file input state
-                  selectedFile = null;
-                  fileInput.value = '';
-                  selectedFileDiv.textContent = '';
-                  uploadBtn.style.display = 'none';
-              } else {
-                  const errorData = await response.json();
-                  uploadStatus.style.color = "#ea4335";
-                  uploadStatus.textContent = `❌ Error al procesar: ${errorData.message || 'Intenta de nuevo.'}`;
-              }
-          } catch (error) {
-              console.error("Upload error:", error);
-              uploadStatus.style.color = "#ea4335";
-              uploadStatus.textContent = '❌ Error de conexión al subir el archivo.';
-          } finally {
-              uploadBtn.disabled = false;
+        if (!file || !currentSession) return;
+        uploadStatus.style.color = "#7df9ff";
+        uploadStatus.textContent = 'Procesando y entrenando a Clara...';
+        uploadBtn.disabled = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        formData.append('user_id', currentSession.user.id);
+        try {
+          const response = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            body: formData
+          });
+          if (response.ok) {
+            uploadStatus.style.color = "#72ffb4";
+            uploadStatus.textContent = `✅ Documento "${file.name}" cargado. Ya puedes preguntarme sobre su contenido.`;
+            selectedFile = null;
+            fileInput.value = '';
+            selectedFileDiv.textContent = '';
+            uploadBtn.style.display = 'none';
+          } else {
+            const errorData = await response.json();
+            uploadStatus.style.color = "#ea4335";
+            uploadStatus.textContent = `❌ Error al procesar: ${errorData.message || 'Intenta de nuevo.'}`;
           }
+        } catch (error) {
+          console.error("Upload error:", error);
+          uploadStatus.style.color = "#ea4335";
+          uploadStatus.textContent = '❌ Error de conexión al subir el archivo.';
+        } finally {
+          uploadBtn.disabled = false;
+        }
       };
 
-
-      // --- UI HELPERS & EVENT LISTENERS ---
-
-      // Auto-resize textarea
-      userInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-      });
-
-      // Send on Enter key
-      userInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendBtn.click();
+      uploadWrapper.addEventListener('click', (e) => {
+        if (e.target !== uploadBtn) {
+          fileInput.click();
         }
       });
 
-      // Send button click
-      sendBtn.addEventListener('click', sendMessage);
-
-      // Trigger file input
-      uploadWrapper.addEventListener('click', (e) => {
-          if (e.target !== uploadBtn) {
-              fileInput.click();
-          }
-      });
-      
-      // Handle file selection
       fileInput.addEventListener('change', (e) => {
         selectedFile = e.target.files[0] || null;
         if (selectedFile) {
@@ -335,57 +363,50 @@ const sendMessage = async () => {
           uploadBtn.style.display = 'none';
         }
       });
-      
-      // Handle file upload button click
+
       uploadBtn.addEventListener('click', (e) => {
-          e.stopPropagation(); // Prevent uploadWrapper's click event
-          if (selectedFile) {
-            uploadDocument(selectedFile);
-          }
+        e.stopPropagation();
+        if (selectedFile) {
+          uploadDocument(selectedFile);
+        }
       });
 
-      /**
-       * Adds a message bubble to the chat container.
-       * @param {string} text - The message content.
-       * @param {boolean} isUser - True if the message is from the user.
-       */
-      function addMessageToUI(text, isUser) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message' + (isUser ? ' user-message' : '');
-        messageDiv.innerHTML = `
-          <div class="avatar ${isUser ? 'user-avatar' : 'ai-avatar'}">${isUser ? 'U' : 'C'}</div>
-          <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
-        `;
-        chatContainer.appendChild(messageDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-
-      function addTypingIndicator() {
-        const id = 'typing-' + Date.now();
-        const typingDiv = document.createElement('div');
-        typingDiv.id = id;
-        typingDiv.className = 'message';
-        typingDiv.innerHTML = `
-          <div class="avatar ai-avatar">C</div>
-          <div class="message-content typing">Clara está escribiendo...</div>
-        `;
-        chatContainer.appendChild(typingDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        return id;
-      }
-
-      function removeTypingIndicator(id) {
-        const element = document.getElementById(id);
-        if (element) element.remove();
-      }
+      // --- TRAIN TEXT LOGIC ---
+      trainBtn.addEventListener('click', async () => {
+        const text = trainText.value.trim();
+        if (!text) {
+          trainStatus.textContent = "Debes ingresar texto para entrenar.";
+          trainStatus.style.color = "#ea4335";
+          return;
+        }
+        trainStatus.textContent = "Entrenando a Clara...";
+        trainStatus.style.color = "#7df9ff";
+        trainBtn.disabled = true;
+        try {
+          const response = await fetch(TRAIN_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: text,
+              user_id: currentSession ? currentSession.user.id : "anon",
+              timestamp: new Date().toISOString()
+            })
+          });
+          if (response.ok) {
+            trainStatus.textContent = "✅ ¡Clara ha sido entrenada con tu instrucción!";
+            trainStatus.style.color = "#72ffb4";
+            trainText.value = '';
+          } else {
+            trainStatus.textContent = "❌ Error al entrenar. Intenta de nuevo.";
+            trainStatus.style.color = "#ea4335";
+          }
+        } catch (e) {
+          trainStatus.textContent = "❌ Error de conexión.";
+          trainStatus.style.color = "#ea4335";
+        }
+        trainBtn.disabled = false;
+      });
     });
   </script>
-<script type="module">
-  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
-  createChat({
-    webhookUrl: 'https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat'
-    // You can add further options here if needed
-  });
-</script>
 </body>
 </html>
