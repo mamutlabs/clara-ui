@@ -214,7 +214,7 @@
       /**
        * Sends a message to the backend API.
        */
-     const MCP_API_URL = 'https://mamutlabs.app.n8n.cloud/mcp/webhook/sse';
+     
 
 const sendMessage = async () => {
   if (isSending || !currentSession) return;
@@ -229,7 +229,7 @@ const sendMessage = async () => {
   const typingId = addTypingIndicator();
 
   try {
-    const response = await fetch(MCP_API_URL, {
+    const response = await fetch(API_URL, { // <-- aquí el cambio
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -249,7 +249,7 @@ const sendMessage = async () => {
   } finally {
     isSending = false;
   }
-};     
+};
 
       /**
        * Uploads a document to the backend.
