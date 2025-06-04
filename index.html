@@ -214,43 +214,42 @@
       /**
        * Sends a message to the backend API.
        */
-      const sendMessage = async () => {
-        if (isSending || !currentSession) return;
+     const MCP_API_URL = 'https://mamutlabs.app.n8n.cloud/mcp/webhook/sse';
 
-        const message = userInput.value.trim();
-        if (!message) return;
+const sendMessage = async () => {
+  if (isSending || !currentSession) return;
 
-        isSending = true;
-        addMessageToUI(message, true);
-        userInput.value = '';
-        userInput.style.height = 'auto';
-        const typingId = addTypingIndicator();
+  const message = userInput.value.trim();
+  if (!message) return;
 
-      // ... dentro de la función sendMessage ...
+  isSending = true;
+  addMessageToUI(message, true);
+  userInput.value = '';
+  userInput.style.height = 'auto';
+  const typingId = addTypingIndicator();
 
-      try {
-          const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // ESTA PARTE ES LA MÁS IMPORTANTE
-            body: JSON.stringify({
-              query: message, // Aquí se incluye el mensaje del usuario
-              user_id: currentSession.user.id
-            })
-          });
+  try {
+    const response = await fetch(MCP_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: message,
+        userId: currentSession.user.id,
+        timestamp: new Date().toISOString()
+      })
+    });
 
-          const responseText = await response.text();
-          removeTypingIndicator(typingId);
-          addMessageToUI(responseText || 'No he podido procesar tu solicitud.', false);
-        } catch (error) {
-          console.error("Chat error:", error);
-          removeTypingIndicator(typingId);
-          addMessageToUI('Hubo un error de conexión. Por favor, intenta de nuevo.', false);
-        } finally {
-          isSending = false;
-        }
-      // ... resto de la función ...
-      };
+    const responseText = await response.text();
+    removeTypingIndicator(typingId);
+    addMessageToUI(responseText || 'No he podido procesar tu solicitud.', false);
+  } catch (error) {
+    console.error("Chat error:", error);
+    removeTypingIndicator(typingId);
+    addMessageToUI('Hubo un error de conexión. Por favor, intenta de nuevo.', false);
+  } finally {
+    isSending = false;
+  }
+};     
 
       /**
        * Uploads a document to the backend.
