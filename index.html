@@ -286,12 +286,87 @@
     @keyframes fadeIn {
       0% {opacity:0;}
       100% {opacity:1;}
-  }
-  #n8n-chat .n8n-chat-header {
-    background: #FF6B35 !important;
-  }
-</style>
-  
+    }
+    /* ==== Custom Clara n8n Chat Styling ==== */
+    #n8n-chat .n8n-chat-header,
+    #n8n-chat .n8n-chat-header-title,
+    #n8n-chat .n8n-chat-header-subtitle,
+    #n8n-chat .chat-header,
+    #n8n-chat .chat-header + p,
+    #n8n-chat h1 {
+      display: none !important;
+    }
+    #n8n-chat .chat-messages-list .chat-message-from-bot:first-child,
+    #n8n-chat .chat-messages-list .chat-message-from-bot:nth-child(2) {
+      display: none !important;
+    }
+    #n8n-chat .chat-window,
+    #n8n-chat .chat-window-wrapper {
+      background: #181818 !important;
+      border-radius: 18px !important;
+      box-shadow: 0 4px 28px #ff6b3530 !important;
+      border: 1.5px solid #FF6B35 !important;
+      overflow: hidden !important;
+    }
+    #n8n-chat .chat-body,
+    #n8n-chat .chat-messages-list {
+      background: #212121 !important;
+    }
+    #n8n-chat .chat-message-from-bot .chat-message-markdown {
+      background: #fff3ed !important;
+      color: #FF6B35 !important;
+      border-radius: 12px 12px 12px 0 !important;
+      box-shadow: 0 1px 6px #ff6b3540 !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.08em !important;
+      margin-bottom: 8px;
+    }
+    #n8n-chat .chat-message-from-user .chat-message-markdown {
+      background: #FF6B35 !important;
+      color: #fff !important;
+      border-radius: 12px 12px 0 12px !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.08em !important;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 8px #ff6b3540 !important;
+    }
+    #n8n-chat input,
+    #n8n-chat textarea {
+      background: #171717 !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      border: 1.5px solid #ff6b35cc !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.01em !important;
+      padding: 12px 14px !important;
+    }
+    #n8n-chat input::placeholder,
+    #n8n-chat textarea::placeholder {
+      color: #ffb793 !important;
+    }
+    #n8n-chat button {
+      background: #FF6B35 !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      font-family: 'Inter', sans-serif !important;
+      font-weight: 600 !important;
+      font-size: 1em !important;
+      border: none !important;
+      padding: 10px 20px !important;
+      box-shadow: 0 2px 8px #ff6b3530;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #n8n-chat button:hover {
+      background: #e85b2a !important;
+    }
+    @media (max-width: 600px) {
+      #n8n-chat .chat-window,
+      #n8n-chat .chat-window-wrapper {
+        border-radius: 10px !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- HEADER STICKY -->
@@ -407,11 +482,23 @@
       showLogoutBtn(true);
       // Initialize n8n chat if not already initialized
       if (window.createChat && document.querySelector("#n8n-chat") && !window.n8nChatInstance) {
-       window.n8nChatInstance = window.createChat({
-  webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
-  element: "#n8n-chat",
-  welcomeMessage: "¡Hola!  Mi nombre es Clara, ¿en qué puedo ayudarte?"
-});
+        window.n8nChatInstance = window.createChat({
+          webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
+          element: "#n8n-chat",
+          welcomeMessage: "¡Hola! Mi nombre es Clara, ¿en qué puedo ayudarte?",
+          initialMessages: [
+            "¡Hola! Mi nombre es Clara, ¿en qué puedo ayudarte?"
+          ],
+          i18n: {
+            es: {
+              title: "¡Hola! 👋",
+              subtitle: "Comienza un chat. Estoy aquí para ayudarte.",
+              inputPlaceholder: "Escribe tu pregunta...",
+              getStarted: "Nueva conversación"
+            }
+          },
+          defaultLanguage: "es"
+        });
       }
     }
     function showLogin() {
