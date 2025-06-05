@@ -253,10 +253,29 @@
   <script>
     // ---- SUPABASE SETUP ----
     const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4X9pAURriYdKjlzWX38CLxjM5TtxxNCJSximcM3NI'; // <-- Replace with your Supabase anon/public API key
+    const supabaseKey = 'PASTE_YOUR_SUPABASE_KEY_HERE';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: true, storageKey: 'sb-clara-auth', autoRefreshToken: true }
     });
+
+    // ---- MAGIC LINK SESSION HANDLING ----
+    (function handleMagicLink() {
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') && hash.includes('refresh_token'))) {
+        const params = new URLSearchParams(hash.substring(1));
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        if (access_token && refresh_token) {
+          supabase.auth.setSession({ access_token, refresh_token })
+            .then(({ error }) => {
+              if (!error) {
+                window.location.hash = '';
+                window.location.reload();
+              }
+            });
+        }
+      }
+    })();
 
     // ---- DOM ELEMENTS ----
     const loginSection = document.getElementById('login-section');
@@ -278,55 +297,44 @@
 
     // ---- N8N CHAT ----
     let n8nChatInstance = null;
-    let n8nChatScript = null;
-    function showN8nChat() {
-      if (window.createChat && !n8nChatInstance) {
-        n8nChatInstance = window.createChat({
+
+    function showPrivate(session) {
+      loginSection.style.display = 'none';
+      contenidoPrivado.style.display = 'flex';
+      msgDiv.textContent = '';
+      // Initialize n8n chat if not already initialized
+      if (window.createChat && document.querySelector("#n8n-chat") && !window.n8nChatInstance) {
+        window.n8nChatInstance = window.createChat({
           webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
           element: "#n8n-chat"
         });
       }
     }
+    function showLogin() {
+      loginSection.style.display = 'flex';
+      contenidoPrivado.style.display = 'none';
+      msgDiv.textContent = '';
+    }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // n8n chat load
-     // n8n chat widget will be loaded via static <script type="module"> at the end of the body
-
-      // ---- SESSION/UI LOGIC ----
-      function showPrivate(session) {
-        loginSection.style.display = 'none';
-        contenidoPrivado.style.display = 'flex';
-        msgDiv.textContent = '';
-        // Initialize n8n chat if not already initialized
-  if (window.createChat && document.querySelector("#n8n-chat") && !window.n8nChatInstance) {
-    window.n8nChatInstance = window.createChat({
-      webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
-      element: "#n8n-chat"
-    });
-  }
-}
-      }
-      function showLogin() {
-        loginSection.style.display = 'flex';
-        contenidoPrivado.style.display = 'none';
-        msgDiv.textContent = '';
-      }
-      async function checkSessionAndUpdateUI() {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session && session.user) {
-            showPrivate(session);
-          } else {
-            showLogin();
-          }
-        } catch (e) {
+    async function checkSessionAndUpdateUI() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          showPrivate(session);
+        } else {
           showLogin();
         }
+      } catch (e) {
+        showLogin();
       }
-      supabase.auth.onAuthStateChange((_event, session) => {
-        if (session && session.user) showPrivate(session);
-        else showLogin();
-      });
+    }
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session && session.user) showPrivate(session);
+      else showLogin();
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
       await checkSessionAndUpdateUI();
 
       // ---- LOGIN FORM HANDLER ----
@@ -334,6 +342,7 @@
         e.preventDefault();
         const email = loginEmail.value.trim();
         const password = loginPassword.value;
+
         if (!email || !password) {
           msgDiv.style.color = '#ea4335';
           msgDiv.textContent = 'Por favor ingresa tu correo y contraseña.';
@@ -343,16 +352,14 @@
         msgDiv.style.color = '#34a853';
         msgDiv.textContent = 'Iniciando sesión...';
 
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           msgDiv.style.color = '#ea4335';
           msgDiv.textContent = 'Error: ' + error.message;
         } else {
           msgDiv.style.color = '#34a853';
           msgDiv.textContent = '¡Bienvenido!';
+          // UI will update automatically by auth state listener
         }
         loginBtn.disabled = false;
       };
@@ -480,8 +487,8 @@
     });
   </script>
   <script type="module">
-  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
-  window.createChat = createChat;
-</script>
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+    window.createChat = createChat;
+  </script>
 </body>
 </html>
