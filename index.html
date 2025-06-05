@@ -58,7 +58,7 @@
       margin-bottom: 2rem;
       text-align: center;
     }
-    .login-card input[type="email"] {
+    .login-card input[type="email"], .login-card input[type="password"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 1rem;
@@ -68,7 +68,8 @@
       background: rgba(255,255,255,0.2);
       color: #222;
     }
-    .login-card input[type="email"]::placeholder {
+    .login-card input[type="email"]::placeholder,
+    .login-card input[type="password"]::placeholder {
       color: #8b949e;
     }
     .login-card button {
@@ -194,7 +195,6 @@
       margin-bottom: 2rem;
       margin-top: 0.5rem;
     }
-
     @keyframes fadeIn {
       0% {opacity:0;}
       100% {opacity:1;}
@@ -217,24 +217,23 @@
         <span class="logo">Clara</span>
       </div>
       <div class="subtitle">Tu consultora experta en seguros y fianzas</div>
-      <form id="magic-link-form">
-        <input type="email" id="email" placeholder="Tu correo electrónico" required autocomplete="username">
-        <button id="magiclink-btn" type="submit">Enviarme enlace de acceso</button>
+      <!-- EMAIL/PASSWORD LOGIN ONLY -->
+      <form id="login-form">
+        <input type="email" id="login-email" placeholder="Tu correo electrónico" required autocomplete="username">
+        <input type="password" id="login-password" placeholder="Contraseña" required autocomplete="current-password">
+        <button id="login-btn" type="submit">Iniciar sesión</button>
       </form>
       <div id="msg"></div>
     </div>
-
     <!-- PRIVATE CONTENT -->
     <div id="contenido-privado">
       <button id="logout-btn" class="logout-button">Cerrar sesión</button>
-      <!-- Entrenamiento por texto -->
       <div class="train-container glass">
         <h3>Entrena a Clara con instrucciones</h3>
         <textarea id="train-text" placeholder="Escribe instrucciones, reglas o información relevante para entrenar a Clara..." rows="4"></textarea>
         <button id="train-btn">Entrenar</button>
         <div id="train-status"></div>
       </div>
-      <!-- Upload de documentos -->
       <div class="upload-container glass">
         <div class="upload-wrapper" id="upload-wrapper">
           <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx" style="display: none;">
@@ -248,23 +247,23 @@
           <div id="upload-status"></div>
         </div>
       </div>
-      <!-- Chat embed n8n -->
       <div id="n8n-chat"></div>
     </div>
   </div>
   <script>
     // ---- SUPABASE SETUP ----
     const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4[...]'; // <-- Use your actual key
+    const supabaseKey = 'YOUR_SUPABASE_API_KEY'; // <-- Replace with your Supabase anon/public API key
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: true, storageKey: 'sb-clara-auth', autoRefreshToken: true }
     });
 
     // ---- DOM ELEMENTS ----
     const loginSection = document.getElementById('login-section');
-    const magicLinkForm = document.getElementById('magic-link-form');
-    const emailInput = document.getElementById('email');
-    const magicLinkBtn = document.getElementById('magiclink-btn');
+    const loginForm = document.getElementById('login-form');
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+    const loginBtn = document.getElementById('login-btn');
     const msgDiv = document.getElementById('msg');
     const contenidoPrivado = document.getElementById('contenido-privado');
     const logoutBtn = document.getElementById('logout-btn');
@@ -336,42 +335,39 @@
       });
       await checkSessionAndUpdateUI();
 
-      // ---- MAGIC LINK SUBMIT ----
-      magicLinkForm.onsubmit = async (e) => {
+      // ---- LOGIN FORM HANDLER ----
+      loginForm.onsubmit = async (e) => {
         e.preventDefault();
-        const email = emailInput.value.trim();
-        if (!email) {
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value;
+        if (!email || !password) {
           msgDiv.style.color = '#ea4335';
-          msgDiv.textContent = 'Por favor ingresa tu correo.';
+          msgDiv.textContent = 'Por favor ingresa tu correo y contraseña.';
           return;
         }
-        magicLinkBtn.disabled = true;
+        loginBtn.disabled = true;
         msgDiv.style.color = '#34a853';
-        msgDiv.textContent = 'Enviando enlace...';
+        msgDiv.textContent = 'Iniciando sesión...';
 
-        // Only send magic link, do NOT allow registration if not found
-        const { error } = await supabase.auth.signInWithOtp({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
-          options: {
-            emailRedirectTo: window.location.origin,
-            shouldCreateUser: false, // Only legit emails from Supabase admin will work
-            expiresIn: 60 * 60 * 48
-          }
+          password
         });
         if (error) {
           msgDiv.style.color = '#ea4335';
           msgDiv.textContent = 'Error: ' + error.message;
         } else {
           msgDiv.style.color = '#34a853';
-          msgDiv.textContent = '¡Revisa tu correo para el enlace!';
+          msgDiv.textContent = '¡Bienvenido!';
         }
-        magicLinkBtn.disabled = false;
+        loginBtn.disabled = false;
       };
 
       // ---- LOGOUT ----
       logoutBtn.onclick = async () => {
         await supabase.auth.signOut();
-        emailInput.value = '';
+        loginEmail.value = '';
+        loginPassword.value = '';
         msgDiv.textContent = 'Sesión cerrada.';
         showLogin();
       };
