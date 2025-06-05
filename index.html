@@ -290,27 +290,21 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       // n8n chat load
-      if (!window.createChat) {
-        if (!n8nChatScript) {
-          n8nChatScript = document.createElement('script');
-          n8nChatScript.type = 'module';
-          n8nChatScript.innerHTML = `
-            import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
-            window.createChat = createChat;
-            window.dispatchEvent(new Event('n8nChatReady'));
-          `;
-          document.body.appendChild(n8nChatScript);
-        }
-        window.addEventListener('n8nChatReady', showN8nChat, { once: true });
-      } else {
-        showN8nChat();
-      }
+     // n8n chat widget will be loaded via static <script type="module"> at the end of the body
 
       // ---- SESSION/UI LOGIC ----
       function showPrivate(session) {
         loginSection.style.display = 'none';
         contenidoPrivado.style.display = 'flex';
         msgDiv.textContent = '';
+        // Initialize n8n chat if not already initialized
+  if (window.createChat && document.querySelector("#n8n-chat") && !window.n8nChatInstance) {
+    window.n8nChatInstance = window.createChat({
+      webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
+      element: "#n8n-chat"
+    });
+  }
+}
       }
       function showLogin() {
         loginSection.style.display = 'flex';
@@ -485,5 +479,9 @@
       });
     });
   </script>
+  <script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+  window.createChat = createChat;
+</script>
 </body>
 </html>
