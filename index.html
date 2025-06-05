@@ -288,6 +288,9 @@
       100% {opacity:1;}
     }
   </style>
+.n8n-chat-header {
+  background: var(--primary) !important;
+}
 </head>
 <body>
   <!-- HEADER STICKY -->
@@ -403,10 +406,11 @@
       showLogoutBtn(true);
       // Initialize n8n chat if not already initialized
       if (window.createChat && document.querySelector("#n8n-chat") && !window.n8nChatInstance) {
-        window.n8nChatInstance = window.createChat({
-          webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
-          element: "#n8n-chat"
-        });
+       window.n8nChatInstance = window.createChat({
+  webhookUrl: "https://mamutlabs.app.n8n.cloud/webhook/b93f61ae-5dd2-46a6-97b9-15e5ff6070b7/chat",
+  element: "#n8n-chat",
+  welcomeMessage: "¡Hola!  Mi nombre es Clara, ¿en qué puedo ayudarte?"
+});
       }
     }
     function showLogin() {
