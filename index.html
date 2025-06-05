@@ -106,7 +106,7 @@
 
       // --- SUPABASE SETUP ---
       const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
-      const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // <-- Change this to your public anon key!
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4X9pAURriYdKjlzWX38CLxjM5TtxxNCJSximcM3NI'; // <-- Change this to your public anon key!
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
         auth: { persistSession: true, storageKey: 'sb-clara-auth', autoRefreshToken: true }
       });
