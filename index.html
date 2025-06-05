@@ -4,48 +4,233 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clara - AI Insurance Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ... [YOUR ORIGINAL STYLES, UNCHANGED] ... */
-    /* Keep all your CSS from your original file here! */
-    /* If you want the original CSS, let me know, I'll paste it again. */
+    body {
+      background: linear-gradient(135deg, #232526 0%, #00f2fe 100%);
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .center-container {
+      width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.25);
+      padding: 2.5rem 2.5rem 2rem 2.5rem;
+      max-width: 360px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.7s;
+    }
+    .login-card .logo-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .login-card .shield-icon {
+      width: 32px;
+      height: 32px;
+      margin-right: 0.5rem;
+    }
+    .login-card .logo {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #00f2fe;
+      letter-spacing: 1px;
+    }
+    .login-card .subtitle {
+      font-size: 1rem;
+      color: #e6edf3;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .login-card input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.2);
+      color: #222;
+    }
+    .login-card input[type="email"]::placeholder {
+      color: #8b949e;
+    }
+    .login-card button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #00f2fe;
+      color: #232526;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-bottom: 1.2rem;
+      transition: background 0.2s;
+    }
+    .login-card button:hover {
+      background: #34a853;
+      color: #fff;
+    }
+    #msg {
+      color: #ea4335;
+      font-size: 1rem;
+      min-height: 1.5em;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    #contenido-privado {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 0;
+      width: 100vw;
+      min-height: 100vh;
+      justify-content: flex-start;
+      animation: fadeIn 0.7s;
+    }
+    .glass {
+      background: rgba(255,255,255,0.12);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    .train-container textarea {
+      width: 100%;
+      border-radius: 8px;
+      border: none;
+      padding: 1rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      resize: vertical;
+    }
+    .train-container button {
+      width: 100%;
+      margin-top: 0.5rem;
+      background: #00f2fe;
+      color: #232526;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .train-container button:hover {
+      background: #34a853;
+      color: #fff;
+    }
+    .upload-container {
+      margin-bottom: 2rem;
+    }
+    .upload-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.10);
+    }
+    .upload-wrapper svg {
+      margin-bottom: 10px;
+    }
+    .upload-wrapper button {
+      margin-top: 1rem;
+      background: #00f2fe;
+      color: #232526;
+      border-radius: 8px;
+      padding: 10px 18px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    .upload-wrapper button:hover {
+      background: #34a853;
+      color: #fff;
+    }
+    #selected-file {
+      margin-top: 0.5rem;
+      color: #fff;
+      font-size: 0.97rem;
+    }
+    #upload-status {
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      font-size: 0.97rem;
+    }
+    #train-status {
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      font-size: 0.97rem;
+    }
+    #n8n-chat {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .logout-button {
+      background: #e74c3c;
+      color: #fff !important;
+      margin-bottom: 2rem;
+      margin-top: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+      0% {opacity:0;}
+      100% {opacity:1;}
+    }
+    @media (max-width: 700px) {
+      .glass, .train-container, .upload-container, #n8n-chat {
+        max-width: 95vw !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
+  <div class="center-container">
+    <!-- LOGIN CARD -->
+    <div class="login-card" id="login-section">
       <div class="logo-row">
-        <!-- Shield Icon SVG -->
         <svg class="shield-icon" viewBox="0 0 24 24" fill="#00f2fe" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2L4 5V11C4 17 12 22 12 22C12 22 20 17 20 11V5L12 2ZM12 20C9.33 18.03 6 15.36 6 11.5V6.3L12 4.13L18 6.3V11.5C18 15.36 14.67 18.03 12 20Z"/>
         </svg>
         <span class="logo">Clara</span>
       </div>
       <div class="subtitle">Tu consultora experta en seguros y fianzas</div>
-    </div>
-
-    <!-- AUTH SECTION -->
-    <div id="auth-section">
-      <form id="login-form">
-        <input type="email" id="email" placeholder="Tu correo electrónico" required>
-        <input type="password" id="password" placeholder="Contraseña (o déjalo vacío para enlace mágico)" autocomplete="current-password">
-        <button id="login-btn" type="submit">Iniciar sesión</button>
-        <button id="register-btn" type="button">Registro</button>
-        <button id="magiclink-btn" type="button">Enlace mágico</button>
+      <form id="magic-link-form">
+        <input type="email" id="email" placeholder="Tu correo electrónico" required autocomplete="username">
+        <button id="magiclink-btn" type="submit">Enviarme enlace de acceso</button>
       </form>
-      <button id="logout-btn" style="display:none;">Cerrar sesión</button>
-      <div id="msg" style="margin-top:10px; color:#34a853;"></div>
+      <div id="msg"></div>
     </div>
 
+    <!-- PRIVATE CONTENT -->
     <div id="contenido-privado">
+      <button id="logout-btn" class="logout-button">Cerrar sesión</button>
       <!-- Entrenamiento por texto -->
       <div class="train-container glass">
         <h3>Entrena a Clara con instrucciones</h3>
         <textarea id="train-text" placeholder="Escribe instrucciones, reglas o información relevante para entrenar a Clara..." rows="4"></textarea>
-        <br>
         <button id="train-btn">Entrenar</button>
         <div id="train-status"></div>
       </div>
@@ -59,7 +244,7 @@
           <div style="color: #e6edf3; font-size: 16px; margin-bottom: 5px;">Cargar documentos para entrenar a Clara</div>
           <div style="color: #8b949e; font-size: 14px;">PDF, TXT, DOC, DOCX - Max 10MB</div>
           <div id="selected-file"></div>
-          <button id="upload-btn" type="button">Cargar y procesar</button>
+          <button id="upload-btn" type="button" style="display:none;">Cargar y procesar</button>
           <div id="upload-status"></div>
         </div>
       </div>
@@ -68,10 +253,33 @@
     </div>
   </div>
   <script>
-    // --- CHAT ALWAYS LOADS ---
+    // ---- SUPABASE SETUP ----
+    const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4[...]'; // <-- Use your actual key
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: true, storageKey: 'sb-clara-auth', autoRefreshToken: true }
+    });
+
+    // ---- DOM ELEMENTS ----
+    const loginSection = document.getElementById('login-section');
+    const magicLinkForm = document.getElementById('magic-link-form');
+    const emailInput = document.getElementById('email');
+    const magicLinkBtn = document.getElementById('magiclink-btn');
+    const msgDiv = document.getElementById('msg');
+    const contenidoPrivado = document.getElementById('contenido-privado');
+    const logoutBtn = document.getElementById('logout-btn');
+    const trainBtn = document.getElementById('train-btn');
+    const trainText = document.getElementById('train-text');
+    const trainStatus = document.getElementById('train-status');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const selectedFileDiv = document.getElementById('selected-file');
+    const uploadStatus = document.getElementById('upload-status');
+    const uploadWrapper = document.getElementById('upload-wrapper');
+
+    // ---- N8N CHAT ----
     let n8nChatInstance = null;
     let n8nChatScript = null;
-
     function showN8nChat() {
       if (window.createChat && !n8nChatInstance) {
         n8nChatInstance = window.createChat({
@@ -80,14 +288,9 @@
         });
       }
     }
-    function removeN8nChat() {
-      const chatDiv = document.getElementById("n8n-chat");
-      if (chatDiv) chatDiv.innerHTML = "";
-      n8nChatInstance = null;
-    }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // Always load n8n chat
+      // n8n chat load
       if (!window.createChat) {
         if (!n8nChatScript) {
           n8nChatScript = document.createElement('script');
@@ -104,180 +307,89 @@
         showN8nChat();
       }
 
-      // --- SUPABASE SETUP ---
-      const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4X9pAURriYdKjlzWX38CLxjM5TtxxNCJSximcM3NI'; // <-- Change this to your public anon key!
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-        auth: { persistSession: true, storageKey: 'sb-clara-auth', autoRefreshToken: true }
-      });
-
-      // --- N8N WEBHOOK URLS ---
-      const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
-      const TRAIN_URL = 'https://mamutlabs.app.n8n.cloud/webhook/train-text';
-
-      // --- DOM ELEMENTS ---
-      const loginForm = document.getElementById('login-form');
-      const emailInput = document.getElementById('email');
-      const passwordInput = document.getElementById('password');
-      const loginBtn = document.getElementById('login-btn');
-      const registerBtn = document.getElementById('register-btn');
-      const magicLinkBtn = document.getElementById('magiclink-btn');
-      const logoutBtn = document.getElementById('logout-btn');
-      const contenidoPrivado = document.getElementById('contenido-privado');
-      const authSection = document.getElementById('auth-section');
-      const msgDiv = document.getElementById('msg');
-      const fileInput = document.getElementById('file-input');
-      const uploadBtn = document.getElementById('upload-btn');
-      const selectedFileDiv = document.getElementById('selected-file');
-      const uploadStatus = document.getElementById('upload-status');
-      const uploadWrapper = document.getElementById('upload-wrapper');
-      const trainBtn = document.getElementById('train-btn');
-      const trainText = document.getElementById('train-text');
-      const trainStatus = document.getElementById('train-status');
-
-      // --- APP STATE ---
-      let currentSession = null;
-      let selectedFile = null;
-
-      // --- AUTHENTICATION ---
-      function updateUI(session) {
-        currentSession = session;
-        if (session) {
-          loginForm.style.display = 'none';
-          logoutBtn.style.display = 'inline-block';
-          contenidoPrivado.style.display = 'flex';
-          msgDiv.textContent = '';
-        } else {
-          loginForm.style.display = 'block';
-          logoutBtn.style.display = 'none';
-          contenidoPrivado.style.display = 'none';
-          msgDiv.textContent = '';
-        }
+      // ---- SESSION/UI LOGIC ----
+      function showPrivate(session) {
+        loginSection.style.display = 'none';
+        contenidoPrivado.style.display = 'flex';
+        msgDiv.textContent = '';
       }
-
-      // Listen for authentication state changes (login, logout)
-      supabase.auth.onAuthStateChange((_event, session) => updateUI(session));
-
-      // Check for an existing session when the page loads
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        updateUI(session);
-      } catch (error) {
-        console.error("Error getting session:", error);
-        updateUI(null);
+      function showLogin() {
+        loginSection.style.display = 'flex';
+        contenidoPrivado.style.display = 'none';
+        msgDiv.textContent = '';
       }
-
-      // --- LOGIN HANDLER ---
-      loginForm.onsubmit = async (e) => {
-        e.preventDefault();
-        msgDiv.style.color = '#34a853';
-        msgDiv.textContent = 'Iniciando sesión...';
-        loginBtn.disabled = true;
-
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-
-        if (!email) {
-          msgDiv.style.color = '#ea4335';
-          msgDiv.textContent = 'Por favor ingresa tu correo.';
-          loginBtn.disabled = false;
-          return;
-        }
-
-        if (password) {
-          // Email/password login
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) {
-            msgDiv.style.color = '#ea4335';
-            msgDiv.textContent = 'Error de login: ' + error.message;
+      async function checkSessionAndUpdateUI() {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session && session.user) {
+            showPrivate(session);
           } else {
-            msgDiv.style.color = '#34a853';
-            msgDiv.textContent = '¡Sesión iniciada!';
+            showLogin();
           }
-        } else {
-          msgDiv.style.color = '#ea4335';
-          msgDiv.textContent = 'Introduce contraseña o usa Enlace mágico.';
+        } catch (e) {
+          showLogin();
         }
-        loginBtn.disabled = false;
-      };
+      }
+      supabase.auth.onAuthStateChange((_event, session) => {
+        if (session && session.user) showPrivate(session);
+        else showLogin();
+      });
+      await checkSessionAndUpdateUI();
 
-      // --- REGISTER HANDLER ---
-      registerBtn.onclick = async (e) => {
+      // ---- MAGIC LINK SUBMIT ----
+      magicLinkForm.onsubmit = async (e) => {
         e.preventDefault();
-        msgDiv.style.color = '#34a853';
-        msgDiv.textContent = 'Registrando...';
-        registerBtn.disabled = true;
-
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-
-        if (!email || !password) {
-          msgDiv.style.color = '#ea4335';
-          msgDiv.textContent = 'Ingresa correo y contraseña para registrarte.';
-          registerBtn.disabled = false;
-          return;
-        }
-
-        // Register user
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin }
-        });
-        if (error) {
-          msgDiv.style.color = '#ea4335';
-          msgDiv.textContent = 'Error de registro: ' + error.message;
-        } else {
-          msgDiv.style.color = '#34a853';
-          msgDiv.textContent = '¡Revisa tu correo para confirmar el registro!';
-        }
-        registerBtn.disabled = false;
-      };
-
-      // --- MAGIC LINK HANDLER ---
-      magicLinkBtn.onclick = async (e) => {
-        e.preventDefault();
-        msgDiv.style.color = '#34a853';
-        msgDiv.textContent = 'Enviando enlace mágico...';
-        magicLinkBtn.disabled = true;
-
         const email = emailInput.value.trim();
         if (!email) {
           msgDiv.style.color = '#ea4335';
           msgDiv.textContent = 'Por favor ingresa tu correo.';
-          magicLinkBtn.disabled = false;
           return;
         }
+        magicLinkBtn.disabled = true;
+        msgDiv.style.color = '#34a853';
+        msgDiv.textContent = 'Enviando enlace...';
 
-        // Magic link with 48h expiration
+        // Only send magic link, do NOT allow registration if not found
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
             emailRedirectTo: window.location.origin,
-            shouldCreateUser: true,
-            expiresIn: 60 * 60 * 48 // 48 hours in seconds
+            shouldCreateUser: false, // Only legit emails from Supabase admin will work
+            expiresIn: 60 * 60 * 48
           }
         });
-
         if (error) {
           msgDiv.style.color = '#ea4335';
-          msgDiv.textContent = 'Error de enlace mágico: ' + error.message;
+          msgDiv.textContent = 'Error: ' + error.message;
         } else {
           msgDiv.style.color = '#34a853';
-          msgDiv.textContent = '¡Revisa tu correo para el enlace de acceso!';
+          msgDiv.textContent = '¡Revisa tu correo para el enlace!';
         }
         magicLinkBtn.disabled = false;
       };
 
-      // --- LOGOUT HANDLER ---
+      // ---- LOGOUT ----
       logoutBtn.onclick = async () => {
         await supabase.auth.signOut();
         emailInput.value = '';
-        passwordInput.value = '';
         msgDiv.textContent = 'Sesión cerrada.';
+        showLogin();
       };
 
-      // --- FILE UPLOAD LOGIC ---
+      // ---- FILE UPLOAD LOGIC ----
+      let currentSession = null;
+      let selectedFile = null;
+      const UPLOAD_URL = 'https://mamutlabs.app.n8n.cloud/webhook/upload';
+      const TRAIN_URL = 'https://mamutlabs.app.n8n.cloud/webhook/train-text';
+
+      supabase.auth.onAuthStateChange((_event, session) => {
+        currentSession = session;
+      });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        currentSession = session;
+      } catch (e) {}
+
       const uploadDocument = async (file) => {
         if (!file || !currentSession) return;
         uploadStatus.style.color = "#7df9ff";
@@ -305,7 +417,6 @@
             uploadStatus.textContent = `❌ Error al procesar: ${errorData.message || 'Intenta de nuevo.'}`;
           }
         } catch (error) {
-          console.error("Upload error:", error);
           uploadStatus.style.color = "#ea4335";
           uploadStatus.textContent = '❌ Error de conexión al subir el archivo.';
         } finally {
@@ -318,7 +429,6 @@
           fileInput.click();
         }
       });
-
       fileInput.addEventListener('change', (e) => {
         selectedFile = e.target.files[0] || null;
         if (selectedFile) {
@@ -330,7 +440,6 @@
           uploadBtn.style.display = 'none';
         }
       });
-
       uploadBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (selectedFile) {
@@ -338,7 +447,7 @@
         }
       });
 
-      // --- TRAIN TEXT LOGIC ---
+      // ---- TRAIN TEXT LOGIC ----
       trainBtn.addEventListener('click', async () => {
         const text = trainText.value.trim();
         if (!text) {
