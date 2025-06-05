@@ -287,7 +287,29 @@
       0% {opacity:0;}
       100% {opacity:1;}
     }
-    /* ==== Custom Clara n8n Chat Styling ==== */
+    /* ==== Custom Clara Chatbot Header ==== */
+    .clara-chatbot-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #181818;
+      padding: 16px 20px 10px 20px;
+      border-radius: 18px 18px 0 0;
+      margin-bottom: 0;
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .clara-chatbot-header .shield-icon {
+      display: inline-block;
+    }
+    .clara-chatbot-title {
+      color: #fff;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-family: 'Inter', 'Poppins', system-ui, Arial, sans-serif;
+    }
+    /* ==== n8n Chat Customization ==== */
     #n8n-chat .n8n-chat-header,
     #n8n-chat .n8n-chat-header-title,
     #n8n-chat .n8n-chat-header-subtitle,
@@ -328,7 +350,7 @@
       font-family: 'Inter', sans-serif !important;
       font-size: 1.08em !important;
       margin-bottom: 8px;
-      box-shadow: 0 1px 8px #ff6b3540 !important;
+      box-shadow: 0 1px 8px #ff6b3530 !important;
     }
     #n8n-chat input,
     #n8n-chat textarea {
@@ -419,13 +441,20 @@
           <div id="upload-status"></div>
         </div>
       </div>
+      <!-- CHAT HEADER -->
+      <div class="clara-chatbot-header">
+        <svg class="shield-icon" width="28" height="28" viewBox="0 0 24 24" fill="#FFF" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
+          <path d="M12 2L4 5V11C4 17 12 22 12 22C12 22 20 17 20 11V5L12 2ZM12 20C9.33 18.03 6 15.36 6 11.5V6.3L12 4.13L18 6.3V11.5C18 15.36 14.67 18.03 12 20Z"/>
+        </svg>
+        <span class="clara-chatbot-title">Clara</span>
+      </div>
       <div id="n8n-chat"></div>
     </div>
   </div>
   <script>
     // ---- SUPABASE SETUP ----
     const supabaseUrl = 'https://ygtguphvjoijfuiontai.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4X9pAURriYdKjlzWX38CLxjM5TtxxNCJSximcM3NI';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndGd1cGh2am9pamZ1aW9udGFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDgyMTQsImV4cCI6MjA2NDEyNDIxNH0.nc4X9[...]';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: true, storageKey: 'sb-clara-auth', autoRefreshToken: true }
     });
